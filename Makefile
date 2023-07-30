@@ -16,6 +16,8 @@ start:
 
 install-dependencies:
 	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12.4
+	go install github.com/pressly/goose/v3/cmd/goose@latest
+
 
 .PHONY: run
 mod-download:
@@ -23,3 +25,6 @@ mod-download:
 
 generate: install-dependencies mod-download
 	go generate ./...
+
+generate-mocks:
+	@mockery --output user/mocks --dir user --all
