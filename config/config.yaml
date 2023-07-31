@@ -3,3 +3,10 @@ app:
 
 http:
   address: ':8080'
+
+database:
+  schema:
+  user:
+  password:
+  port:
+  host:

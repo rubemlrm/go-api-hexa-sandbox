@@ -3,6 +3,9 @@ TARGET_ARCH = amd64
 SOURCE_MAIN = cmd/app/main.go
 LDFLAGS = -s -w
 
+export GOOSE_DBSTRING=postgresql://admin:admin@localhost:5432/postgres
+export GOOSE_DRIVER=postgres
+
 all: build
 
 build:
@@ -28,3 +31,15 @@ generate: install-dependencies mod-download
 
 generate-mocks:
 	@mockery --output user/mocks --dir user --all
+
+.PHONY: build
+build: ## Build app
+	go build -o bin/app cmd/app/main.go
+
+
+migrate: ## run database migrations
+	goose -dir migrations up
+
+
+migrate-rollback: ## run database migrations
+	goose -dir migrations down
