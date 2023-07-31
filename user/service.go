@@ -15,17 +15,7 @@ func NewService(r Repository) *Service {
 }
 
 func (s *Service) Create(user *User) (ID, error) {
-	u := User{
-		ID:        ID(1),
-		Name:      user.Name,
-		Email:     user.Email,
-		Password:  user.Password,
-		IsEnabled: user.IsEnabled,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}
-
-	id, err := s.repo.Create(&u)
+	id, err := s.repo.Create(user)
 	if err != nil {
 		return 0, fmt.Errorf("Error creating user")
 	}

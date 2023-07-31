@@ -1,5 +1,3 @@
-//go:build integration
-
 package user_postgres_test
 
 import (
@@ -8,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-faker/faker/v4"
 	gooseTesting "github.com/rubemlrm/go-api-bootstrap/tests/goose"
 	"github.com/rubemlrm/go-api-bootstrap/tests/testcontainers"
-	"github.com/rubemlrm/go-api-bootstrap/user"
-	storage "github.com/rubemlrm/go-api-bootstrap/user/postgres"
+	user "github.com/rubemlrm/go-api-bootstrap/user"
+	user_postgres "github.com/rubemlrm/go-api-bootstrap/user/postgres"
 
+	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -42,16 +40,17 @@ func (s *UserRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *UserRepositoryTestSuite) TestUserCreationWithSucess() {
+	u := user.User{
+		Name:      "teste2",
+		Password:  "changeme",
+		Email:     "foo",
+		IsEnabled: false,
+	}
+	repository := user_postgres.NewConnection(s.DB)
+	id, err := repository.Create(&u)
 
-	fakerData := user.User{}
-	err := faker.FakeData(&fakerData)
-	s.Require().NoError(err)
-
-	repository := storage.NewConnection(s.DB)
-	id, err := repository.Create(&fakerData)
-
-	assert.Equal(s.T(), 2, id)
 	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), id, user.ID(1))
 }
 
 func (s *UserRepositoryTestSuite) TearDownSuite() {

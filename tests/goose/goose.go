@@ -6,6 +6,8 @@ import (
 	"path"
 	"runtime"
 
+	_ "github.com/lib/pq"
+
 	"github.com/pressly/goose/v3"
 )
 
@@ -16,7 +18,7 @@ func RunMigrations(dsn string) error {
 		return err
 	}
 	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Join(path.Dir(filename), "../migrations")
+	dir := path.Join(path.Dir(filename), "../../migrations")
 
 	files := os.DirFS(dir)
 	goose.SetBaseFS(files)

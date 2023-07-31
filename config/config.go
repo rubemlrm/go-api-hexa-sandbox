@@ -9,8 +9,9 @@ import (
 
 type (
 	Config struct {
-		App  App  `mapstructure:"app"`
-		HTTP HTTP `mapstructure:"http"`
+		App      App      `mapstructure:"app"`
+		HTTP     HTTP     `mapstructure:"http"`
+		Database Database `mapstructure:"database"`
 	}
 
 	App struct {
@@ -19,6 +20,14 @@ type (
 
 	HTTP struct {
 		Address string `env-required:"true" mapstructure:"address"    env:"HTTP_ADDRESS"`
+	}
+
+	Database struct {
+		Schema   string `env-required:"true" mapstructure:"schema"    env:"DATABASE_SCHEMA"`
+		User     string `env-required:"true" mapstructure:"user"    env:"DATABASE_USER"`
+		Password string `env-required:"true" mapstructure:"password"    env:"DATABASE_PASSWORD"`
+		Port     string `env-required:"true" mapstructure:"port"    env:"DATABASE_PORT"`
+		Host     string `env-required:"true" mapstructure:"host"    env:"DATABASE_HOST"`
 	}
 )
 

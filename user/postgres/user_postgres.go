@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	_ "github.com/lib/pq"
 	"github.com/rubemlrm/go-api-bootstrap/user"
 )
 
@@ -18,25 +19,21 @@ func NewConnection(db *sql.DB) *PostGresDB {
 }
 
 func (r *PostGresDB) Create(u *user.User) (user.ID, error) {
-	query, err := r.db.Prepare(`INSERT into user (name, email, password, isEnabled) values(?,?,?)`)
-	defer query.Close()
-	if err != nil {
-		return 0, err
-	}
-	res, err := query.Exec(u.Name, u.Email, u.Password, u.IsEnabled)
-	if err != nil {
-		return 0, err
-	}
 
-	id, err := res.LastInsertId()
+	if r == nil {
+		return 0, fmt.Errorf("db is null")
+	}
+	var id int
+	query := `INSERT into users (name, email, password, is_enabled) values($1,$2,$3,$4) RETURNING id`
+	err := r.db.QueryRow(query, u.Name, u.Email, u.Password, u.IsEnabled).Scan(&id)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 	return user.ID(id), nil
 }
 
 func (r *PostGresDB) Get(id user.ID) (*user.User, error) {
-	stmt, err := r.db.Prepare(`SELECT id, name, password, isEnabled where id = ?`)
+	stmt, err := r.db.Prepare(`SELECT id, name, password, is_enabled FROM users where id = $1`)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +44,7 @@ func (r *PostGresDB) Get(id user.ID) (*user.User, error) {
 		return nil, err
 	}
 	if !rows.Next() {
-		return nil, fmt.Errorf("not found")
+		return nil, fmt.Errorf("not found result")
 	}
 	err = rows.Scan(&u.ID, &u.Name, &u.Password, &u.IsEnabled)
 	if err != nil {
