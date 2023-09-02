@@ -2,7 +2,10 @@ package api_test
 
 import (
 	"net/http"
+	"os"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/rubemlrm/go-api-bootstrap/config"
 	"github.com/rubemlrm/go-api-bootstrap/internal/api"
@@ -19,12 +22,21 @@ func TestStart(t *testing.T) {
 	t.Run("testing wrong port", func(t *testing.T) {
 		httpConfigs := config.HTTP{
 			Address:      "99999999999",
-			ReadTimeout:  "10",
-			WriteTimeout: "10",
+			ReadTimeout:  "1",
+			WriteTimeout: "1",
 		}
-		err := api.Start(mockHandler{}, httpConfigs)
+		srv, err := api.NewServer(mockHandler{}, httpConfigs)
+		assert.Nil(t, err)
+		go func(error) {
+			time.Sleep(1 * time.Second)
+			p, err := os.FindProcess(syscall.Getpid())
+			assert.Nil(t, err)
+			err = p.Signal(syscall.SIGINT)
+			assert.Nil(t, err)
+		}(err)
+		err = srv.Start()
 		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "invalid port")
+		assert.Contains(t, err.Error(), "listen tcp: address 99999999999: invalid port")
 	})
 
 	t.Run("testing invalid Read Timeout", func(t *testing.T) {
@@ -33,7 +45,8 @@ func TestStart(t *testing.T) {
 			ReadTimeout:  "zxc",
 			WriteTimeout: "zxv",
 		}
-		err := api.Start(mockHandler{}, httpConfigs)
+		server, err := api.NewServer(mockHandler{}, httpConfigs)
+		assert.IsType(t, server, api.Server{Server: (*http.Server)(nil)})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Error validating configuration: ReadTimeout")
 		assert.IsType(t, err, &gin.HttpConfigurationError{})
@@ -45,9 +58,31 @@ func TestStart(t *testing.T) {
 			ReadTimeout:  "123",
 			WriteTimeout: "zxv",
 		}
-		err := api.Start(mockHandler{}, httpConfigs)
+		server, err := api.NewServer(mockHandler{}, httpConfigs)
+		assert.IsType(t, server, api.Server{Server: (*http.Server)(nil)})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Error validating configuration: WriteTimeout")
 		assert.IsType(t, err, &gin.HttpConfigurationError{})
+	})
+
+	t.Run("testing Server Start", func(t *testing.T) {
+		httpConfigs := config.HTTP{
+			Address:      "8080",
+			ReadTimeout:  "1",
+			WriteTimeout: "1",
+		}
+		srv, err := api.NewServer(mockHandler{}, httpConfigs)
+		assert.NoError(t, err)
+
+		go func() {
+			time.Sleep(1 * time.Second)
+			p, err := os.FindProcess(syscall.Getpid())
+			assert.Nil(t, err)
+			err = p.Signal(syscall.SIGINT)
+			assert.Nil(t, err)
+
+		}()
+		err = srv.Start()
+		assert.Nil(t, err)
 	})
 }
