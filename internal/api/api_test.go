@@ -6,6 +6,7 @@ import (
 
 	"github.com/rubemlrm/go-api-bootstrap/config"
 	"github.com/rubemlrm/go-api-bootstrap/internal/api"
+	"github.com/rubemlrm/go-api-bootstrap/pkg/gin"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,13 +27,27 @@ func TestStart(t *testing.T) {
 		assert.Contains(t, err.Error(), "invalid port")
 	})
 
-	t.Run("testing right port port", func(t *testing.T) {
+	t.Run("testing invalid Read Timeout", func(t *testing.T) {
 		httpConfigs := config.HTTP{
-			Address:      "9090",
-			ReadTimeout:  "120",
-			WriteTimeout: "120",
+			Address:      "8080",
+			ReadTimeout:  "zxc",
+			WriteTimeout: "zxv",
 		}
 		err := api.Start(mockHandler{}, httpConfigs)
-		assert.Nil(t, err)
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Error validating configuration: ReadTimeout")
+		assert.IsType(t, err, &gin.HttpConfigurationError{})
+	})
+
+	t.Run("testing invalid Write Timeout", func(t *testing.T) {
+		httpConfigs := config.HTTP{
+			Address:      "8080",
+			ReadTimeout:  "123",
+			WriteTimeout: "zxv",
+		}
+		err := api.Start(mockHandler{}, httpConfigs)
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Error validating configuration: WriteTimeout")
+		assert.IsType(t, err, &gin.HttpConfigurationError{})
 	})
 }

@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/rubemlrm/go-api-bootstrap/config"
+	"github.com/rubemlrm/go-api-bootstrap/pkg/gin"
 )
 
 func Start(h http.Handler, httpConfig config.HTTP) error {
@@ -40,17 +41,17 @@ func prepareServerConfig(h http.Handler, httpConfig config.HTTP) (*http.Server, 
 	_, err := strconv.Atoi(httpConfig.ReadTimeout)
 
 	if err != nil {
-		return nil, err
+		return nil, &gin.HttpConfigurationError{Input: "ReadTimeout"}
 	}
 
 	_, err = strconv.Atoi(httpConfig.WriteTimeout)
 
 	if err != nil {
-		return nil, err
+		return nil, &gin.HttpConfigurationError{Input: "WriteTimeout"}
 	}
 
 	server := &http.Server{
-		Addr:    ":" + httpConfig.Address,
+		Addr:    fmt.Sprintf(":%s", httpConfig.Address),
 		Handler: h,
 	}
 
@@ -65,6 +66,7 @@ func shutdown(server *http.Server, ctxShutdown context.Context, errShutdown chan
 	defer stop()
 
 	err := server.Shutdown(ctxTimeout)
+
 	switch err {
 	case nil:
 		errShutdown <- nil
