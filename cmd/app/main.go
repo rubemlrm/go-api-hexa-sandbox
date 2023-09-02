@@ -18,17 +18,17 @@ func main() {
 	repo := user_postgres.NewConnection(db)
 	_ = user.NewService(repo)
 
-	err = startWeb()
+	err = startWeb(cfg.HTTP)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func startWeb() error {
+func startWeb(httpConfig config.HTTP) error {
 	ne := gin_handler.NewEngine()
 	ne.SetHandlers()
-	err := api.Start(ne.StartHTTP())
+	err := api.Start(ne.StartHTTP(), httpConfig)
 	if err != nil {
 		panic(err)
 	}

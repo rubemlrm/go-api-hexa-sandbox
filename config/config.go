@@ -19,7 +19,9 @@ type (
 	}
 
 	HTTP struct {
-		Address string `env-required:"true" mapstructure:"address"    env:"HTTP_ADDRESS"`
+		Address      string `env-required:"true" mapstructure:"address"    env:"HTTP_ADDRESS"`
+		ReadTimeout  string `env-required:"true" mapstructure:"readTimeout"    env:"HTTP_READ_TIMEOUT"`
+		WriteTimeout string `env-required:"true" mapstructure:"writeTimeout"    env:"HTTP_WRITE_TIMEOUT"`
 	}
 
 	Database struct {

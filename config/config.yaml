@@ -2,7 +2,9 @@ app:
   name: "api-gin-template"
 
 http:
-  address: ':8080'
+  address: '8080'
+  readTimeout: '30'
+  writeTimeout: '30'
 
 database:
   schema:
