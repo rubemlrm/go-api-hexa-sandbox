@@ -28,7 +28,13 @@ func main() {
 func startWeb(httpConfig config.HTTP) error {
 	ne := gin_handler.NewEngine()
 	ne.SetHandlers()
-	err := api.Start(ne.StartHTTP(), httpConfig)
+	srv, err := api.NewServer(ne.StartHTTP(), httpConfig)
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = srv.Start()
 	if err != nil {
 		panic(err)
 	}

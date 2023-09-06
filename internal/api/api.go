@@ -3,74 +3,93 @@ package api
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/rubemlrm/go-api-bootstrap/config"
+	"github.com/rubemlrm/go-api-bootstrap/pkg/gin"
 )
 
-func Start(h http.Handler, httpConfig config.HTTP) error {
-
-	server, err := prepareServerConfig(h, httpConfig)
-	if err != nil {
-		return err
-	}
-	ctx, stop := signal.NotifyContext(
-		context.Background(),
-		syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT,
-	)
-	defer stop()
-	errShutdown := make(chan error, 1)
-	go shutdown(server, ctx, errShutdown)
-	err = server.ListenAndServe()
-	if err != nil && err != http.ErrServerClosed {
-		return err
-	}
-	err = <-errShutdown
-	if err != nil {
-		return err
-	}
-	return nil
+type Server struct {
+	*http.Server
 }
 
-func prepareServerConfig(h http.Handler, httpConfig config.HTTP) (*http.Server, error) {
+func NewServer(h http.Handler, httpConfig config.HTTP) (Server, error) {
+	server, err := prepareServerConfig(h, httpConfig)
+	if err != nil {
+		return Server{}, err
+	}
+	return server, err
+}
+
+func (s Server) Start() error {
+	// init empty variable to store errors from go routines
+	var err error
+
+	// Set channel that will receive signals
+	notifyChannel := make(chan os.Signal, 1)
+	signal.Notify(notifyChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	// Start Server list
+	go func() {
+		err = s.startListening()
+	}()
+
+	// Wait for signal to shutdown
+	shutdownSignal := <-notifyChannel
+	log.Printf("Received signal: %v\n", shutdownSignal)
+
+	go func() {
+		err = s.stopListening()
+	}()
+
+	println(fmt.Sprintf("Current service listening on port %s \n", s.Addr))
+
+	return err
+}
+
+func prepareServerConfig(h http.Handler, httpConfig config.HTTP) (Server, error) {
 
 	_, err := strconv.Atoi(httpConfig.ReadTimeout)
 
 	if err != nil {
-		return nil, err
+		return Server{}, &gin.HttpConfigurationError{Input: "ReadTimeout"}
 	}
 
 	_, err = strconv.Atoi(httpConfig.WriteTimeout)
 
 	if err != nil {
-		return nil, err
+		return Server{}, &gin.HttpConfigurationError{Input: "WriteTimeout"}
 	}
 
 	server := &http.Server{
-		Addr:    ":" + httpConfig.Address,
+		Addr:    fmt.Sprintf(":%s", httpConfig.Address),
 		Handler: h,
 	}
 
-	return server, nil
+	return Server{
+		server,
+	}, nil
 
 }
 
-func shutdown(server *http.Server, ctxShutdown context.Context, errShutdown chan error) {
-	<-ctxShutdown.Done()
-
-	ctxTimeout, stop := context.WithTimeout(context.Background(), 30)
-	defer stop()
-
-	err := server.Shutdown(ctxTimeout)
-	switch err {
-	case nil:
-		errShutdown <- nil
-	case context.DeadlineExceeded:
-		errShutdown <- fmt.Errorf("Forcing closing the server")
-	default:
-		errShutdown <- fmt.Errorf("Forcing closing the server")
+func (s *Server) startListening() error {
+	if err := s.ListenAndServe(); err != http.ErrServerClosed {
+		return err
 	}
+	return nil
+}
+
+func (s *Server) stopListening() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	if err := s.Shutdown(ctx); err != nil {
+		return err
+	}
+	return nil
 }
