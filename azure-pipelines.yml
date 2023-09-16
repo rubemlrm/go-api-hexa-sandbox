@@ -1,0 +1,29 @@
+# Go
+# Build your Go project.
+# Add steps that test, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/go
+# SET UP GO
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+
+steps:
+  - task: GoTool@0
+    inputs:
+      version: '1.21.0'
+  - task: Go@0
+    inputs:
+      command: 'get'
+      arguments: '-d'
+      workingDirectory: '$(System.DefaultWorkingDirectory)'
+    # TEST
+  - task: Go@0
+    inputs:
+      command: 'test'
+      arguments: '-v'
+      workingDirectory: '$(modulePath)'
