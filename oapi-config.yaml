@@ -4,6 +4,6 @@ generate:
   client: true
   models: true
   embedded-spec: true
-output: internal/api/api.gen.go
+output: internal/http/gin/openapi/api.gen.go
 output-options:
   skip-prune: true

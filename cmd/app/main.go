@@ -5,6 +5,7 @@ import (
 	"github.com/rubemlrm/go-api-bootstrap/internal/api"
 	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/http/gin"
 	"github.com/rubemlrm/go-api-bootstrap/pkg/postgres"
+	"github.com/rubemlrm/go-api-bootstrap/pkg/slog"
 	"github.com/rubemlrm/go-api-bootstrap/user"
 	user_postgres "github.com/rubemlrm/go-api-bootstrap/user/postgres"
 )
@@ -14,6 +15,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	logger := slog.NewLogger(cfg.Logger)
+
+	logger.Info("app starting")
 	db := postgres.StartConnection(cfg)
 	repo := user_postgres.NewConnection(db)
 	_ = user.NewService(repo)

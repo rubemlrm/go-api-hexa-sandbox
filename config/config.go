@@ -12,6 +12,7 @@ type (
 		App      App      `mapstructure:"app"`
 		HTTP     HTTP     `mapstructure:"http"`
 		Database Database `mapstructure:"database"`
+		Logger   Logger   `mapstructure:"logger"`
 	}
 
 	App struct {
@@ -30,6 +31,11 @@ type (
 		Password string `env-required:"true" mapstructure:"password"    env:"DATABASE_PASSWORD"`
 		Port     string `env-required:"true" mapstructure:"port"    env:"DATABASE_PORT"`
 		Host     string `env-required:"true" mapstructure:"host"    env:"DATABASE_HOST"`
+	}
+
+	Logger struct {
+		Handler string `env-required:"true" mapstructure:"handler"    env:"LOGGER_HANDLER"`
+		Level   string `env-required:"true" mapstructure:"level"    env:"LOGGER_LEVEL"`
 	}
 )
 
