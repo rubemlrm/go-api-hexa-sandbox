@@ -8,6 +8,7 @@ import (
 	"github.com/rubemlrm/go-api-bootstrap/pkg/slog"
 	"github.com/rubemlrm/go-api-bootstrap/user"
 	user_postgres "github.com/rubemlrm/go-api-bootstrap/user/postgres"
+	slogger "golang.org/x/exp/slog"
 )
 
 func main() {
@@ -18,21 +19,21 @@ func main() {
 	logger := slog.NewLogger(cfg.Logger)
 
 	logger.Info("app starting")
-	db := postgres.StartConnection(cfg)
-	repo := user_postgres.NewConnection(db)
-	_ = user.NewService(repo)
+	db := postgres.StartConnection(cfg, logger)
+	repo := user_postgres.NewConnection(db, logger)
+	us := user.NewService(repo, logger)
 
-	err = startWeb(cfg.HTTP)
+	err = startWeb(cfg.HTTP, us, logger)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func startWeb(httpConfig config.HTTP) error {
+func startWeb(httpConfig config.HTTP, userService *user.Service, logger *slogger.Logger) error {
 	ne := gin_handler.NewEngine()
-	ne.SetHandlers()
-	srv, err := api.NewServer(ne.StartHTTP(), httpConfig)
+	ne.SetHandlers(userService, logger)
+	srv, err := api.NewServer(ne.StartHTTP(), httpConfig, logger)
 
 	if err != nil {
 		panic(err)

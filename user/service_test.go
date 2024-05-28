@@ -27,7 +27,7 @@ func TestServiceGet(t *testing.T) {
 
 		repo.On("Get", user.ID(1)).Return(u, nil).Once()
 
-		service := user.NewService(repo)
+		service := user.NewService(repo, nil)
 		// act
 		userFound, err := service.Get(user.ID(1))
 
@@ -41,7 +41,7 @@ func TestServiceGet(t *testing.T) {
 		repo := user_mocks.NewMockRepository(t)
 		repo.On("Get", user.ID(2)).Return(nil, fmt.Errorf("not found")).Once()
 
-		service := user.NewService(repo)
+		service := user.NewService(repo, nil)
 
 		// act
 		userFound, err := service.Get(user.ID(2))
@@ -55,22 +55,20 @@ func TestServiceGet(t *testing.T) {
 func TestUserCreation(t *testing.T) {
 	t.Run(" Create user with success", func(t *testing.T) {
 		// arrange
-		u := user.User{
-			ID:        1,
-			Name:      "foo",
-			Email:     "foo@bar.xyz",
-			Password:  "changeme",
-			IsEnabled: false,
+		u := user.UserCreate{
+			Name:     "foo",
+			Email:    "foo@bar.xyz",
+			Password: "changeme",
 		}
 
 		repo := user_mocks.NewMockRepository(t)
 		repo.On("Create", &u).Return(user.ID(1), nil).Once()
-		service := user.NewService(repo)
+		service := user.NewService(repo, nil)
 		// act
 		userCreate, err := service.Create(&u)
 
 		// assert
-		assert.Equal(t, u.ID, userCreate)
+		assert.Equal(t, 1, userCreate)
 		assert.Nil(t, err)
 	})
 }

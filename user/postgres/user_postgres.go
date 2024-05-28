@@ -3,36 +3,41 @@ package user_postgres
 import (
 	"database/sql"
 	"fmt"
+	"golang.org/x/exp/slog"
 
 	_ "github.com/lib/pq"
 	"github.com/rubemlrm/go-api-bootstrap/user"
 )
 
-type PostGresDB struct {
-	db *sql.DB
+var _ user.Repository = (*PostgresDB)(nil)
+
+type PostgresDB struct {
+	db     *sql.DB
+	logger *slog.Logger
 }
 
-func NewConnection(db *sql.DB) *PostGresDB {
-	return &PostGresDB{
-		db: db,
+func NewConnection(db *sql.DB, logger *slog.Logger) *PostgresDB {
+	return &PostgresDB{
+		db:     db,
+		logger: logger,
 	}
 }
 
-func (r *PostGresDB) Create(u *user.User) (user.ID, error) {
+func (r *PostgresDB) Create(u *user.UserCreate) (user.ID, error) {
 
 	if r == nil {
 		return 0, fmt.Errorf("db is null")
 	}
 	var id int
-	query := `INSERT into users (name, email, password, is_enabled) values($1,$2,$3,$4) RETURNING id`
-	err := r.db.QueryRow(query, u.Name, u.Email, u.Password, u.IsEnabled).Scan(&id)
+	query := `INSERT into users (name, email, password) values($1,$2,$3) RETURNING id`
+	err := r.db.QueryRow(query, u.Name, u.Email, u.Password).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
 	return user.ID(id), nil
 }
 
-func (r *PostGresDB) Get(id user.ID) (*user.User, error) {
+func (r *PostgresDB) Get(id user.ID) (*user.User, error) {
 	stmt, err := r.db.Prepare(`SELECT id, name, password, is_enabled FROM users where id = $1`)
 	if err != nil {
 		return nil, err
@@ -52,4 +57,29 @@ func (r *PostGresDB) Get(id user.ID) (*user.User, error) {
 	}
 
 	return &u, nil
+}
+
+func (r *PostgresDB) All() (*[]user.User, error) {
+	stmt, err := r.db.Prepare(`SELECT id, name, password, is_enabled from users`)
+	if err != nil {
+		return nil, err
+	}
+
+	var uu []user.User
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var u user.User
+		err = rows.Scan(&u.ID, &u.Name, &u.Password, &u.IsEnabled)
+		if err != nil {
+			// handle this error
+			panic(err)
+		}
+		uu = append(uu, u)
+	}
+	return &uu, nil
 }

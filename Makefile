@@ -3,7 +3,7 @@ TARGET_ARCH = amd64
 SOURCE_MAIN = cmd/app/main.go
 LDFLAGS = -s -w
 
-export GOOSE_DBSTRING=postgresql://admin:admin@localhost:5432/postgres
+export GOOSE_DBSTRING=postgresql://demo:demo@127.0.0.1:5432/demo
 export GOOSE_DRIVER=postgres
 
 all: build
@@ -18,7 +18,7 @@ start:
 	go run $(SOURCE_MAIN)
 
 install-dependencies:
-	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12.4
+	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
 	go install github.com/pressly/goose/v3/cmd/goose@latest
 
 
@@ -27,7 +27,7 @@ mod-download:
 	go mod download
 
 generate: install-dependencies mod-download
-	go generate ./...
+	go generate ./... && oapi-codegen --config oapi-config.yaml ./spec/openapi.yaml
 
 generate-mocks:
 	@mockery --output user/mocks --dir user --all

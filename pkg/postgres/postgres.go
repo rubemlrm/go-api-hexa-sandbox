@@ -3,13 +3,14 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	"golang.org/x/exp/slog"
 	"log"
 	"time"
 
 	"github.com/rubemlrm/go-api-bootstrap/config"
 )
 
-func StartConnection(cfg *config.Config) *sql.DB {
+func StartConnection(cfg *config.Config, logger *slog.Logger) *sql.DB {
 	dbUri := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", cfg.Database.User, cfg.Database.User, cfg.Database.Host, cfg.Database.Port, cfg.Database.Schema)
 	db, err := sql.Open("postgres", dbUri)
 	if err != nil {

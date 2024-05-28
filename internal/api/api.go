@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"golang.org/x/exp/slog"
 	"log"
 	"net/http"
 	"os"
@@ -19,8 +20,8 @@ type Server struct {
 	*http.Server
 }
 
-func NewServer(h http.Handler, httpConfig config.HTTP) (Server, error) {
-	server, err := prepareServerConfig(h, httpConfig)
+func NewServer(h http.Handler, httpConfig config.HTTP, logger *slog.Logger) (Server, error) {
+	server, err := prepareServerConfig(h, httpConfig, logger)
 	if err != nil {
 		return Server{}, err
 	}
@@ -53,7 +54,7 @@ func (s Server) Start() error {
 	return err
 }
 
-func prepareServerConfig(h http.Handler, httpConfig config.HTTP) (Server, error) {
+func prepareServerConfig(h http.Handler, httpConfig config.HTTP, logger *slog.Logger) (Server, error) {
 
 	_, err := strconv.Atoi(httpConfig.ReadTimeout)
 
@@ -72,9 +73,7 @@ func prepareServerConfig(h http.Handler, httpConfig config.HTTP) (Server, error)
 		Handler: h,
 	}
 
-	return Server{
-		server,
-	}, nil
+	return Server{server}, nil
 
 }
 
