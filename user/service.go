@@ -2,7 +2,7 @@ package user
 
 import (
 	"fmt"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 type Service struct {
@@ -22,7 +22,7 @@ func NewService(r Repository, l *slog.Logger) *Service {
 func (s *Service) Create(user *UserCreate) (ID, error) {
 	id, err := s.repo.Create(user)
 	if err != nil {
-		return 0, fmt.Errorf("Error creating user")
+		return 0, fmt.Errorf("error creating user")
 	}
 
 	return id, nil
@@ -39,7 +39,7 @@ func (s *Service) Get(id ID) (*User, error) {
 func (s *Service) All() (*[]User, error) {
 	u, err := s.repo.All()
 	if err != nil {
-		return nil, fmt.Errorf("not found")
+		return nil, fmt.Errorf("failed to fetch users")
 	}
 	return u, nil
 }

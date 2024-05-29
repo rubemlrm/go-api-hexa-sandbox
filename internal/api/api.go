@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 	"fmt"
-	"golang.org/x/exp/slog"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"

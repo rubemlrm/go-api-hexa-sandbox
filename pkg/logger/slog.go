@@ -1,10 +1,10 @@
-package slog
+package logger
 
 import (
 	"os"
 
 	"github.com/rubemlrm/go-api-bootstrap/config"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 func NewLogger(cfg config.Logger) *slog.Logger {

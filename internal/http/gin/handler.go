@@ -6,7 +6,7 @@ import (
 	"github.com/rubemlrm/go-api-bootstrap/internal/http/gin/handlers"
 	"github.com/rubemlrm/go-api-bootstrap/internal/http/gin/openapi"
 	"github.com/rubemlrm/go-api-bootstrap/user"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 )
 

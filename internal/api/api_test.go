@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"github.com/rubemlrm/go-api-bootstrap/pkg/logger"
 	"net/http"
 	"os"
 	"syscall"
@@ -18,14 +19,16 @@ type mockHandler struct{}
 func (m mockHandler) ServeHTTP(http.ResponseWriter, *http.Request) {}
 
 func TestStart(t *testing.T) {
-
+	l := logger.NewLogger(config.Logger{
+		Level: "Debug",
+	})
 	t.Run("testing wrong port", func(t *testing.T) {
 		httpConfigs := config.HTTP{
 			Address:      "99999999999",
 			ReadTimeout:  "1",
 			WriteTimeout: "1",
 		}
-		srv, err := api.NewServer(mockHandler{}, httpConfigs)
+		srv, err := api.NewServer(mockHandler{}, httpConfigs, l)
 		assert.Nil(t, err)
 		go func(error) {
 			time.Sleep(1 * time.Second)
@@ -45,7 +48,7 @@ func TestStart(t *testing.T) {
 			ReadTimeout:  "zxc",
 			WriteTimeout: "zxv",
 		}
-		server, err := api.NewServer(mockHandler{}, httpConfigs)
+		server, err := api.NewServer(mockHandler{}, httpConfigs, l)
 		assert.IsType(t, server, api.Server{Server: (*http.Server)(nil)})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Error validating configuration: ReadTimeout")
@@ -58,7 +61,7 @@ func TestStart(t *testing.T) {
 			ReadTimeout:  "123",
 			WriteTimeout: "zxv",
 		}
-		server, err := api.NewServer(mockHandler{}, httpConfigs)
+		server, err := api.NewServer(mockHandler{}, httpConfigs, l)
 		assert.IsType(t, server, api.Server{Server: (*http.Server)(nil)})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Error validating configuration: WriteTimeout")
@@ -71,7 +74,7 @@ func TestStart(t *testing.T) {
 			ReadTimeout:  "1",
 			WriteTimeout: "1",
 		}
-		srv, err := api.NewServer(mockHandler{}, httpConfigs)
+		srv, err := api.NewServer(mockHandler{}, httpConfigs, l)
 		assert.NoError(t, err)
 
 		go func() {

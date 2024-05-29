@@ -3,7 +3,7 @@ package user_postgres
 import (
 	"database/sql"
 	"fmt"
-	"golang.org/x/exp/slog"
+	"log/slog"
 
 	_ "github.com/lib/pq"
 	"github.com/rubemlrm/go-api-bootstrap/user"

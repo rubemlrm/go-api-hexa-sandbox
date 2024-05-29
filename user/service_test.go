@@ -1,74 +1,178 @@
 package user_test
 
 import (
-	"fmt"
-	"testing"
-	"time"
-
+	"errors"
 	"github.com/rubemlrm/go-api-bootstrap/user"
 	user_mocks "github.com/rubemlrm/go-api-bootstrap/user/mocks"
 	"github.com/stretchr/testify/assert"
+	"testing"
+	"time"
 )
 
-func TestServiceGet(t *testing.T) {
-	t.Run("user found", func(t *testing.T) {
-		// arrange
-		u := &user.User{
-			ID:        1,
-			Name:      "foo",
-			Email:     "foo@bar.zsx",
-			Password:  "changeme",
-			IsEnabled: false,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		}
+func TestUserCreation(t *testing.T) {
 
-		repo := user_mocks.NewMockRepository(t)
+	tests := []struct {
+		name           string
+		user           *user.UserCreate
+		mockUserId     int
+		mockError      error
+		expectedError  error
+		expectedUserId user.ID
+	}{
+		{
+			name: "create user with success",
+			user: &user.UserCreate{
+				Name:     "foo",
+				Email:    "foo@bar.xyz",
+				Password: "changeme",
+			},
+			mockUserId:     1,
+			mockError:      nil,
+			expectedError:  nil,
+			expectedUserId: 1,
+		},
+		{
+			name: "failed to create user with success",
+			user: &user.UserCreate{
+				Name:     "foo",
+				Email:    "foo@bar.xyz",
+				Password: "changeme",
+			},
+			mockUserId:     1,
+			mockError:      errors.New("something went wrong"),
+			expectedError:  errors.New("error creating user"),
+			expectedUserId: 0,
+		},
+	}
 
-		repo.On("Get", user.ID(1)).Return(u, nil).Once()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 
-		service := user.NewService(repo, nil)
-		// act
-		userFound, err := service.Get(user.ID(1))
-
-		// assert
-		assert.Nil(t, err)
-		assert.Equal(t, u, userFound)
-	})
-
-	t.Run("user not userFound", func(t *testing.T) {
-		// arrange
-		repo := user_mocks.NewMockRepository(t)
-		repo.On("Get", user.ID(2)).Return(nil, fmt.Errorf("not found")).Once()
-
-		service := user.NewService(repo, nil)
-
-		// act
-		userFound, err := service.Get(user.ID(2))
-
-		//
-		assert.Nil(t, userFound)
-		assert.Errorf(t, err, "not found")
-	})
+			repo := user_mocks.NewMockRepository(t)
+			repo.On("Create", tt.user).Return(user.ID(tt.mockUserId), tt.mockError).Once()
+			service := user.NewService(repo, nil)
+			// act
+			userCreate, err := service.Create(tt.user)
+			// assert
+			if tt.mockError != nil {
+				assert.NotNil(t, err)
+				assert.Equal(t, tt.expectedError, err)
+				assert.Equal(t, tt.expectedUserId, userCreate)
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, user.ID(tt.mockUserId), userCreate)
+			}
+			repo.AssertExpectations(t)
+		})
+	}
 }
 
-func TestUserCreation(t *testing.T) {
-	t.Run(" Create user with success", func(t *testing.T) {
-		// arrange
-		u := user.UserCreate{
-			Name:     "foo",
-			Email:    "foo@bar.xyz",
-			Password: "changeme",
-		}
+func TestServiceGet(t *testing.T) {
 
-		repo := user_mocks.NewMockRepository(t)
-		repo.On("Create", &u).Return(user.ID(1), nil).Once()
-		service := user.NewService(repo, nil)
-		// act
-		userCreate, err := service.Create(&u)
+	tests := []struct {
+		name          string
+		user          *user.User
+		mockUserId    int
+		mockError     error
+		expectedError error
+	}{
+		{
+			name: "user found",
+			user: &user.User{
+				ID:        1,
+				Name:      "foo",
+				Email:     "foo@bar.zsx",
+				Password:  "changeme",
+				IsEnabled: false,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			mockUserId: 1,
+			mockError:  nil,
+		},
+		{
+			name:          "user not found",
+			user:          nil,
+			mockUserId:    1,
+			mockError:     errors.New("not found"),
+			expectedError: errors.New("not found"),
+		},
+	}
 
-		// assert
-		assert.Equal(t, 1, userCreate)
-		assert.Nil(t, err)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// arrange
+			repo := user_mocks.NewMockRepository(t)
+
+			repo.On("Get", user.ID(tt.mockUserId)).Return(tt.user, tt.mockError).Once()
+
+			service := user.NewService(repo, nil)
+			// act
+			userFound, err := service.Get(user.ID(tt.mockUserId))
+
+			// assert
+			if tt.mockError != nil {
+				assert.NotNil(t, err)
+				assert.Equal(t, tt.expectedError, err)
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, tt.user, userFound)
+			}
+			repo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestAll(t *testing.T) {
+	tests := []struct {
+		name          string
+		users         *[]user.User
+		mockError     error
+		expectedError error
+	}{
+		{
+			name: "users found",
+			users: &[]user.User{
+				{
+					ID:        1,
+					Name:      "foo",
+					Email:     "foo@bar.zsx",
+					Password:  "changeme",
+					IsEnabled: false,
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+				},
+			},
+			mockError: nil,
+		},
+		{
+			name:          "failed to fetch users",
+			users:         nil,
+			mockError:     errors.New("failed to fetch users"),
+			expectedError: errors.New("failed to fetch users"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// arrange
+			repo := user_mocks.NewMockRepository(t)
+
+			repo.On("All").Return(tt.users, tt.mockError).Once()
+
+			service := user.NewService(repo, nil)
+			// act
+			userFound, err := service.All()
+
+			// assert
+			if tt.mockError != nil {
+				assert.NotNil(t, err)
+				assert.Equal(t, tt.expectedError, err)
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, tt.users, userFound)
+			}
+			repo.AssertExpectations(t)
+		})
+	}
 }

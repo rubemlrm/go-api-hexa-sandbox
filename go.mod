@@ -6,6 +6,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.16.2
 	github.com/getkin/kin-openapi v0.123.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/go-faker/faker/v4 v4.4.1
 	github.com/go-openapi/runtime v0.28.0
 	github.com/lib/pq v1.10.9
 	github.com/spf13/viper v1.16.0

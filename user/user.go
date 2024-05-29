@@ -9,17 +9,17 @@ type ID int
 type UserCreate struct {
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Password string `json:"password" binding:"required,min=3"`
 }
 
 type User struct {
-	ID        ID
-	Name      string
-	Email     string
-	Password  string
-	IsEnabled bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        ID        `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Password  string    `json:"-"`
+	IsEnabled bool      `json:"is_enabled"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type Reader interface {
@@ -40,7 +40,6 @@ type Repository interface {
 type UseCase interface {
 	Get(id ID) (*User, error)
 	Create(user *UserCreate) (ID, error)
-
 	All() (*[]User, error)
 }
 

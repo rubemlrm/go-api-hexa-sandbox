@@ -3,6 +3,8 @@ package user_postgres_test
 import (
 	"context"
 	"database/sql"
+	"github.com/rubemlrm/go-api-bootstrap/config"
+	"github.com/rubemlrm/go-api-bootstrap/pkg/logger"
 	"testing"
 	"time"
 
@@ -40,13 +42,15 @@ func (s *UserRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *UserRepositoryTestSuite) TestUserCreationWithSucess() {
-	u := user.User{
-		Name:      "teste2",
-		Password:  "changeme",
-		Email:     "foo",
-		IsEnabled: false,
+	u := user.UserCreate{
+		Name:     "teste2",
+		Password: "changeme",
+		Email:    "foo",
 	}
-	repository := user_postgres.NewConnection(s.DB)
+	logger := logger.NewLogger(config.Logger{
+		Level: "Debug",
+	})
+	repository := user_postgres.NewConnection(s.DB, logger)
 	id, err := repository.Create(&u)
 
 	assert.NoError(s.T(), err)
