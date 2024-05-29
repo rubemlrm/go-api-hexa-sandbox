@@ -3,4 +3,4 @@ coverage:
     - "**/mocks/*.go"
     - "examples/**/*"
     - "internal/http/gin/openapi/*.go"
-    - "tests/*.go"
+    - "tests/**/*.go"
