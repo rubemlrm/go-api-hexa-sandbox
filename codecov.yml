@@ -2,3 +2,5 @@ coverage:
   ignore:
     - "**/mocks/*.go"
     - "examples/**/*"
+    - "internal/http/gin/openapi/*.go"
+    - "tests/*.go"
