@@ -3,14 +3,14 @@ package user_test
 import (
 	"errors"
 	"github.com/rubemlrm/go-api-bootstrap/user"
+	"github.com/rubemlrm/go-api-bootstrap/user/factories"
 	user_mocks "github.com/rubemlrm/go-api-bootstrap/user/mocks"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
 )
 
 func TestUserCreation(t *testing.T) {
-
+	uf := &factories.UserFactory{}
 	tests := []struct {
 		name           string
 		user           *user.UserCreate
@@ -20,24 +20,16 @@ func TestUserCreation(t *testing.T) {
 		expectedUserId user.ID
 	}{
 		{
-			name: "create user with success",
-			user: &user.UserCreate{
-				Name:     "foo",
-				Email:    "foo@bar.xyz",
-				Password: "changeme",
-			},
+			name:           "create user with success",
+			user:           uf.CreateUserCreate(),
 			mockUserId:     1,
 			mockError:      nil,
 			expectedError:  nil,
 			expectedUserId: 1,
 		},
 		{
-			name: "failed to create user with success",
-			user: &user.UserCreate{
-				Name:     "foo",
-				Email:    "foo@bar.xyz",
-				Password: "changeme",
-			},
+			name:           "failed to create user with success",
+			user:           uf.CreateUserCreate(),
 			mockUserId:     1,
 			mockError:      errors.New("something went wrong"),
 			expectedError:  errors.New("error creating user"),
@@ -68,7 +60,7 @@ func TestUserCreation(t *testing.T) {
 }
 
 func TestServiceGet(t *testing.T) {
-
+	uf := &factories.UserFactory{}
 	tests := []struct {
 		name          string
 		user          *user.User
@@ -77,16 +69,8 @@ func TestServiceGet(t *testing.T) {
 		expectedError error
 	}{
 		{
-			name: "user found",
-			user: &user.User{
-				ID:        1,
-				Name:      "foo",
-				Email:     "foo@bar.zsx",
-				Password:  "changeme",
-				IsEnabled: false,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
+			name:       "user found",
+			user:       uf.CreateUser(),
 			mockUserId: 1,
 			mockError:  nil,
 		},
@@ -124,6 +108,7 @@ func TestServiceGet(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
+	uu := factories.GenerateUsers(1)
 	tests := []struct {
 		name          string
 		users         *[]user.User
@@ -131,18 +116,8 @@ func TestAll(t *testing.T) {
 		expectedError error
 	}{
 		{
-			name: "users found",
-			users: &[]user.User{
-				{
-					ID:        1,
-					Name:      "foo",
-					Email:     "foo@bar.zsx",
-					Password:  "changeme",
-					IsEnabled: false,
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
-				},
-			},
+			name:      "users found",
+			users:     &uu,
 			mockError: nil,
 		},
 		{

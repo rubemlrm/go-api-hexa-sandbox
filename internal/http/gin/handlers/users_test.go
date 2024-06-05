@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-faker/faker/v4"
 	"github.com/rubemlrm/go-api-bootstrap/internal/http/gin/handlers"
 	"github.com/rubemlrm/go-api-bootstrap/user"
+	"github.com/rubemlrm/go-api-bootstrap/user/factories"
 	user_mocks "github.com/rubemlrm/go-api-bootstrap/user/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -150,7 +150,7 @@ func TestListUsers(t *testing.T) {
 
 func TestAddUser(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-
+	uf := factories.UserFactory{}
 	tests := []struct {
 		name             string
 		expectedRequest  *user.UserCreate
@@ -160,37 +160,25 @@ func TestAddUser(t *testing.T) {
 		mockUserId       int
 	}{
 		{
-			name:           "user created with success",
-			expectedStatus: http.StatusOK,
-			expectedRequest: &user.UserCreate{
-				Name:     "test",
-				Email:    "teste@teste.pt",
-				Password: faker.Password(),
-			},
+			name:             "user created with success",
+			expectedStatus:   http.StatusOK,
+			expectedRequest:  uf.CreateUserCreate(),
 			expectedResponse: `{"id":1}`,
 			mockError:        nil,
 			mockUserId:       1,
 		},
 		{
-			name:           "failed to create user",
-			expectedStatus: http.StatusInternalServerError,
-			expectedRequest: &user.UserCreate{
-				Name:     "test",
-				Email:    "teste@teste.pt",
-				Password: faker.Password(),
-			},
+			name:             "failed to create user",
+			expectedStatus:   http.StatusInternalServerError,
+			expectedRequest:  uf.CreateUserCreate(),
 			expectedResponse: `{"error":"internal error"}`,
 			mockError:        errors.New("internal error"),
 			mockUserId:       0,
 		},
 		{
-			name:           "failed to bind json",
-			expectedStatus: http.StatusBadRequest,
-			expectedRequest: &user.UserCreate{
-				Name:     "test",
-				Email:    "teste@teste.pt",
-				Password: "",
-			},
+			name:             "failed to bind json",
+			expectedStatus:   http.StatusBadRequest,
+			expectedRequest:  uf.CreateInvalidUserCreate(),
 			expectedResponse: `{"error":"failed to bind"}`,
 			mockError:        nil,
 			mockUserId:       0,

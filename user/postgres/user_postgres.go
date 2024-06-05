@@ -24,10 +24,6 @@ func NewConnection(db *sql.DB, logger *slog.Logger) *PostgresDB {
 }
 
 func (r *PostgresDB) Create(u *user.UserCreate) (user.ID, error) {
-
-	if r == nil {
-		return 0, fmt.Errorf("db is null")
-	}
 	var id int
 	query := `INSERT into users (name, email, password) values($1,$2,$3) RETURNING id`
 	err := r.db.QueryRow(query, u.Name, u.Email, u.Password).Scan(&id)
@@ -70,14 +66,15 @@ func (r *PostgresDB) All() (*[]user.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err = rows.Close()
+	}(rows)
 
 	for rows.Next() {
 		var u user.User
 		err = rows.Scan(&u.ID, &u.Name, &u.Password, &u.IsEnabled)
 		if err != nil {
-			// handle this error
-			panic(err)
+			return nil, err
 		}
 		uu = append(uu, u)
 	}
