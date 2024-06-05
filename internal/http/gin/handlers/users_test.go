@@ -161,7 +161,7 @@ func TestAddUser(t *testing.T) {
 	}{
 		{
 			name:             "user created with success",
-			expectedStatus:   http.StatusOK,
+			expectedStatus:   http.StatusCreated,
 			expectedRequest:  uf.CreateUserCreate(),
 			expectedResponse: `{"id":1}`,
 			mockError:        nil,
