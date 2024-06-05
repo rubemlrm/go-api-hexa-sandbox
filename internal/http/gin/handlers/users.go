@@ -25,7 +25,7 @@ func (s *server) AddUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"id": id})
+	c.JSON(http.StatusCreated, gin.H{"id": id})
 }
 
 func (s *server) ListUsers(c *gin.Context) {
