@@ -1,0 +1,17 @@
+with-expecter: True
+packages:
+  github.com/rubemlrm/go-api-bootstrap/user:
+    config:
+      all: True
+      filename: "mock_{{.InterfaceName}}.go"
+      dir: "{{.InterfaceDir}}/mocks/"
+      mockname: "Mock{{.InterfaceName}}"
+      outpkg: "{{.PackageName}}_mocks"
+
+  github.com/rubemlrm/go-api-bootstrap/pkg/logger:
+    config:
+      all: True
+      filename: "mock_{{.InterfaceName}}.go"
+      dir: "{{.InterfaceDir}}/mocks/"
+      mockname: "Mock{{.InterfaceName}}"
+      outpkg: "{{.PackageName}}_mocks"

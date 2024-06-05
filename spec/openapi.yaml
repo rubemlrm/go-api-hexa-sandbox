@@ -1,0 +1,107 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Go Api Template
+  description: Template for user management
+servers:
+  - url: http://localhost:8080/api/v1
+paths:
+  /users/{userId}:
+    get:
+      operationId: getUser
+      description: |
+        Returns a given user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: used id to search
+          schema:
+            type: integer
+      responses:
+        200:
+          description: user information
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserWithID'
+
+  /users:
+    get:
+      operationId: listUsers
+      description: |
+        Returns a list of users.
+      responses:
+        200:
+          description: a list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserWithID'
+    post:
+      operationId: addUser
+      description: |
+        Adds a users to the list of users.
+      requestBody:
+        description: A user to insert. Returns the inserted user with an ID
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        201:
+          description: The inserted Thing with a unique ID
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserWithID'
+components:
+  schemas:
+    User:
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - name
+        - email
+        - password
+
+    UserWithID:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - properties:
+            id:
+              type: integer
+              format: int64
+          required:
+            - id
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: Error code
+        message:
+          type: string
+          description: Error message
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - BearerAuth: [ ]
