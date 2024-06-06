@@ -28,9 +28,8 @@ jobs:
               - 'pkg/**'
               - 'tests/**'
               - 'user/**'
-          backend:
-          - '!config/config.yaml'
-          - '!config/stubs/**'
+              - '!config/config.yaml'
+              - '!config/stubs/**'
 
       - uses: dorny/paths-filter@v3
         id: workflows_code_changes
