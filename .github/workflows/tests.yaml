@@ -6,13 +6,60 @@ on:
     branches: [ "main" ]
 
 jobs:
-  golangci:
+  setup:
+    name: setup properties
+    runs-on: ubuntu-latest
+    outputs:
+      code_changes: ${{ steps.code_changes.outputs.src }}
+      workflows_code_changes: ${{ steps.workflows_code_changes.outputs.src }}
+      api_spec_changes: ${{ steps.api_spec_changes.outputs.src }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: code_changes
+        with:
+          filters: |
+            src:
+              - 'cmd/**'
+              - 'config/**'
+              - 'internal/**'
+              - 'pkg/**'
+              - 'tests/**'
+              - 'user/**'
+      - uses: dorny/paths-filter@v3
+        id: workflows_code_changes
+        with:
+          filters: |
+            src:
+              - ".github/workflows/**"
+      - uses: dorny/paths-filter@v3
+        id: api_spec_changes
+        with:
+          filters: |
+            src:
+              - "spec/**"
+  test-yamls:
+    needs:
+     - setup
+    if: always() &&  needs.setup.outputs.workflows_code_changes == 'true'
+    name: test-yamls
+    runs-on: ubuntu-latest
+    steps:
+       - uses: actions/checkout@v4
+       - name: Install yamllint
+         run: pip install yamllint
+       - name: Lint YAML files
+         run: yamllint .
+
+  run-tests:
     name: lint
     runs-on: ubuntu-latest
+    matrix:
+      version: ["~1.20.1", "~1.21.1", "~1.22.1"]
     steps:
       - uses: actions/setup-go@v5
         with:
-          go-version: '>=1.20.3'
+          go-version: ${{ matrix.version }}
       - uses: actions/checkout@v4
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
