@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/rubemlrm/go-api-bootstrap/user"
 	"log/slog"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/rubemlrm/go-api-bootstrap/user"
 )
 
 type Controller struct{}
@@ -38,8 +39,8 @@ func (s *server) ListUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": res})
 }
 
-func (s *server) GetUser(c *gin.Context, userId int) {
-	res, err := s.UserService.Get(user.ID(userId))
+func (s *server) GetUser(c *gin.Context, userID int) {
+	res, err := s.UserService.Get(user.ID(userID))
 	if err != nil {
 		s.Logger.Error("user", "get", "error", slog.Any("error", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -47,7 +48,7 @@ func (s *server) GetUser(c *gin.Context, userId int) {
 	}
 
 	if res == nil {
-		s.Logger.Warn("user", "get", "not found user", fmt.Sprintf("%b", userId), nil)
+		s.Logger.Warn("user", "get", "not found user", fmt.Sprintf("%b", userID), nil)
 		c.JSON(http.StatusNotFound, gin.H{})
 		return
 	}

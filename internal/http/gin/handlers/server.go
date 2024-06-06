@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"log/slog"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/http/gin/openapi"
 	"github.com/rubemlrm/go-api-bootstrap/user"
-	"log/slog"
 )
 
 type server struct {

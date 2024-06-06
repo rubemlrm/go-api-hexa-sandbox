@@ -1,1 +1,1 @@
-package gin_handler_test
+package gin_test

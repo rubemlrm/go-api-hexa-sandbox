@@ -55,26 +55,25 @@ func (s Server) Start() error {
 }
 
 func prepareServerConfig(h http.Handler, httpConfig config.HTTP, logger *slog.Logger) (Server, error) {
-
 	_, err := strconv.Atoi(httpConfig.ReadTimeout)
 
 	if err != nil {
-		return Server{}, &gin.HttpConfigurationError{Input: "ReadTimeout"}
+		return Server{}, &gin.HTTPConfigurationError{Input: "ReadTimeout"}
 	}
 
 	_, err = strconv.Atoi(httpConfig.WriteTimeout)
 
 	if err != nil {
-		return Server{}, &gin.HttpConfigurationError{Input: "WriteTimeout"}
+		return Server{}, &gin.HTTPConfigurationError{Input: "WriteTimeout"}
 	}
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%s", httpConfig.Address),
-		Handler: h,
+		Addr:              fmt.Sprintf(":%s", httpConfig.Address),
+		Handler:           h,
+		ReadHeaderTimeout: 120,
 	}
-
+	logger.Info("server", "configuration", server)
 	return Server{server}, nil
-
 }
 
 func (s *Server) startListening() error {

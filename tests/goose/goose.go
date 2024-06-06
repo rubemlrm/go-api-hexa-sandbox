@@ -2,6 +2,7 @@ package goose
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"path"
 	"runtime"
@@ -17,7 +18,8 @@ func RunMigrations(dsn string) error {
 	if err != nil {
 		return err
 	}
-	_, filename, _, _ := runtime.Caller(0)
+	a, filename, b, _ := runtime.Caller(0)
+	print(fmt.Sprintf("%d %d", a, b))
 	dir := path.Join(path.Dir(filename), "../../migrations")
 
 	files := os.DirFS(dir)
@@ -39,7 +41,8 @@ func RollbackMigrations(dsn string) error {
 	if err != nil {
 		return err
 	}
-	_, filename, _, _ := runtime.Caller(0)
+	a, filename, b, _ := runtime.Caller(0)
+	print(fmt.Sprintf("%d %d", a, b))
 	dir := path.Join(path.Dir(filename), "../../migrations")
 
 	files := os.DirFS(dir)

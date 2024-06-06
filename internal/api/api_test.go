@@ -1,12 +1,13 @@
 package api_test
 
 import (
-	"github.com/rubemlrm/go-api-bootstrap/pkg/logger"
 	"net/http"
 	"os"
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/rubemlrm/go-api-bootstrap/pkg/logger"
 
 	"github.com/rubemlrm/go-api-bootstrap/config"
 	"github.com/rubemlrm/go-api-bootstrap/internal/api"
@@ -52,7 +53,7 @@ func TestStart(t *testing.T) {
 		assert.IsType(t, server, api.Server{Server: (*http.Server)(nil)})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Error validating configuration: ReadTimeout")
-		assert.IsType(t, err, &gin.HttpConfigurationError{})
+		assert.IsType(t, err, &gin.HTTPConfigurationError{})
 	})
 
 	t.Run("testing invalid Write Timeout", func(t *testing.T) {
@@ -65,7 +66,7 @@ func TestStart(t *testing.T) {
 		assert.IsType(t, server, api.Server{Server: (*http.Server)(nil)})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Error validating configuration: WriteTimeout")
-		assert.IsType(t, err, &gin.HttpConfigurationError{})
+		assert.IsType(t, err, &gin.HTTPConfigurationError{})
 	})
 
 	t.Run("testing Server Start", func(t *testing.T) {
@@ -83,7 +84,6 @@ func TestStart(t *testing.T) {
 			assert.Nil(t, err)
 			err = p.Signal(syscall.SIGINT)
 			assert.Nil(t, err)
-
 		}()
 		err = srv.Start()
 		assert.Nil(t, err)

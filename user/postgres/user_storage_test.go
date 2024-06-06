@@ -1,13 +1,14 @@
-package user_postgres_test
+package postgres_test
 
 import (
 	"context"
 	"database/sql"
+	"testing"
+	"time"
+
 	"github.com/rubemlrm/go-api-bootstrap/config"
 	"github.com/rubemlrm/go-api-bootstrap/pkg/logger"
 	"github.com/rubemlrm/go-api-bootstrap/user/factories"
-	"testing"
-	"time"
 
 	gooseTesting "github.com/rubemlrm/go-api-bootstrap/tests/goose"
 	"github.com/rubemlrm/go-api-bootstrap/tests/testcontainers"

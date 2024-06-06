@@ -19,7 +19,6 @@ func init() {
 }
 
 func TestFailLoadConfig(t *testing.T) {
-
 	t.Run("Test failed to load config file", func(t *testing.T) {
 		_, err := LoadConfig("invalid_configs")
 		assert.NotNil(t, err)

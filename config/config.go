@@ -49,7 +49,7 @@ func LoadConfig(configName string) (*Config, error) {
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load config file because: %w", err)
+		return nil, fmt.Errorf("failed to load config file because: %w", err)
 	}
 	replacer := strings.NewReplacer(".", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -57,7 +57,7 @@ func LoadConfig(configName string) (*Config, error) {
 	err = viper.Unmarshal(&cfg)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to unrmashal config file %s", err)
+		return nil, fmt.Errorf("failed to unrmashal config file %s", err)
 	}
 	return cfg, nil
 }
