@@ -15,6 +15,7 @@ jobs:
       workflows_code_changes: ${{ steps.workflows_code_changes.outputs.src }}
       configurations_changes: ${{ steps.configurations_changes.outputs.src }}
       api_spec_changes: ${{ steps.api_spec_changes.outputs.src }}
+      push_to_default_branch: ${{ github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -89,6 +90,31 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.58
+      - name: run tests with coverage
+        run: go test -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: rubemlrm/go-api-hexa-sandbox
+
+
+
+
+  updated-code-coverage:
+    name: update codecov changes
+    needs:
+      - setup
+    if: always() && needs.setup.outputs.push_to_default_branch == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["~1.22.1"]
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.version }}
+      - uses: actions/checkout@v4
       - name: run tests with coverage
         run: go test -coverprofile=coverage.txt -covermode=atomic ./...
       - name: Upload coverage to Codecov
