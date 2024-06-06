@@ -1,5 +1,5 @@
+---
 app:
   name: "api-gin-template"
-
 http:
   address: ':8080'

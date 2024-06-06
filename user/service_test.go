@@ -2,11 +2,12 @@ package user_test
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/rubemlrm/go-api-bootstrap/user"
 	"github.com/rubemlrm/go-api-bootstrap/user/factories"
 	user_mocks "github.com/rubemlrm/go-api-bootstrap/user/mocks"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestUserCreation(t *testing.T) {
@@ -14,34 +15,33 @@ func TestUserCreation(t *testing.T) {
 	tests := []struct {
 		name           string
 		user           *user.UserCreate
-		mockUserId     int
+		mockUserID     int
 		mockError      error
 		expectedError  error
-		expectedUserId user.ID
+		expectedUserID user.ID
 	}{
 		{
 			name:           "create user with success",
 			user:           uf.CreateUserCreate(),
-			mockUserId:     1,
+			mockUserID:     1,
 			mockError:      nil,
 			expectedError:  nil,
-			expectedUserId: 1,
+			expectedUserID: 1,
 		},
 		{
 			name:           "failed to create user with success",
 			user:           uf.CreateUserCreate(),
-			mockUserId:     1,
+			mockUserID:     1,
 			mockError:      errors.New("something went wrong"),
 			expectedError:  errors.New("error creating user"),
-			expectedUserId: 0,
+			expectedUserID: 0,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			repo := user_mocks.NewMockRepository(t)
-			repo.On("Create", tt.user).Return(user.ID(tt.mockUserId), tt.mockError).Once()
+			repo.On("Create", tt.user).Return(user.ID(tt.mockUserID), tt.mockError).Once()
 			service := user.NewService(repo, nil)
 			// act
 			userCreate, err := service.Create(tt.user)
@@ -49,10 +49,10 @@ func TestUserCreation(t *testing.T) {
 			if tt.mockError != nil {
 				assert.NotNil(t, err)
 				assert.Equal(t, tt.expectedError, err)
-				assert.Equal(t, tt.expectedUserId, userCreate)
+				assert.Equal(t, tt.expectedUserID, userCreate)
 			} else {
 				assert.Nil(t, err)
-				assert.Equal(t, user.ID(tt.mockUserId), userCreate)
+				assert.Equal(t, user.ID(tt.mockUserID), userCreate)
 			}
 			repo.AssertExpectations(t)
 		})
@@ -64,20 +64,20 @@ func TestServiceGet(t *testing.T) {
 	tests := []struct {
 		name          string
 		user          *user.User
-		mockUserId    int
+		mockUserID    int
 		mockError     error
 		expectedError error
 	}{
 		{
 			name:       "user found",
 			user:       uf.CreateUser(),
-			mockUserId: 1,
+			mockUserID: 1,
 			mockError:  nil,
 		},
 		{
 			name:          "user not found",
 			user:          nil,
-			mockUserId:    1,
+			mockUserID:    1,
 			mockError:     errors.New("not found"),
 			expectedError: errors.New("not found"),
 		},
@@ -88,11 +88,11 @@ func TestServiceGet(t *testing.T) {
 			// arrange
 			repo := user_mocks.NewMockRepository(t)
 
-			repo.On("Get", user.ID(tt.mockUserId)).Return(tt.user, tt.mockError).Once()
+			repo.On("Get", user.ID(tt.mockUserID)).Return(tt.user, tt.mockError).Once()
 
 			service := user.NewService(repo, nil)
 			// act
-			userFound, err := service.Get(user.ID(tt.mockUserId))
+			userFound, err := service.Get(user.ID(tt.mockUserID))
 
 			// assert
 			if tt.mockError != nil {

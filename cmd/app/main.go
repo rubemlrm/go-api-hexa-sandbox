@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log/slog"
+
 	"github.com/rubemlrm/go-api-bootstrap/config"
 	"github.com/rubemlrm/go-api-bootstrap/internal/api"
 	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/http/gin"
@@ -8,7 +10,6 @@ import (
 	"github.com/rubemlrm/go-api-bootstrap/pkg/postgres"
 	"github.com/rubemlrm/go-api-bootstrap/user"
 	user_postgres "github.com/rubemlrm/go-api-bootstrap/user/postgres"
-	"log/slog"
 )
 
 func main() {
@@ -36,12 +37,12 @@ func startWeb(httpConfig config.HTTP, userService *user.Service, logger *slog.Lo
 	srv, err := api.NewServer(ne.StartHTTP(), httpConfig, logger)
 
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	err = srv.Start()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	return nil
 }

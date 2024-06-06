@@ -1,4 +1,5 @@
-inters:
+---
+linters:
   enable:
     - dogsled
     - dupl
@@ -21,10 +22,10 @@ issues:
   exclude:
     - composites
   exclude-rules:
-  - linters:
-    - dogsled
-    text:  "declaration has 3 blank identifiers"
-    path: _test\.go
-  - linters:
-    - dupl
-    path: _test\.go
+    - linters:
+        - dogsled
+      text: "declaration has 3 blank identifiers"
+      path: _test\.go
+    - linters:
+        - dupl
+      path: _test\.go

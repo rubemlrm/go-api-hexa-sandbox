@@ -4,6 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"testing"
+
 	"github.com/gin-gonic/gin"
 	"github.com/rubemlrm/go-api-bootstrap/internal/http/gin/handlers"
 	"github.com/rubemlrm/go-api-bootstrap/user"
@@ -11,12 +18,6 @@ import (
 	user_mocks "github.com/rubemlrm/go-api-bootstrap/user/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"io"
-	"log/slog"
-	"net/http"
-	"net/http/httptest"
-	"strconv"
-	"testing"
 )
 
 func TestGetUser(t *testing.T) {
@@ -24,14 +25,14 @@ func TestGetUser(t *testing.T) {
 
 	tests := []struct {
 		name             string
-		userId           int
+		userID           int
 		mockUser         *user.User
 		expectedStatus   int
 		expectedResponse string
 		mockError        error
 	}{
 		{
-			userId:         1,
+			userID:         1,
 			name:           "get user with success",
 			expectedStatus: http.StatusOK,
 			mockUser: &user.User{
@@ -41,7 +42,7 @@ func TestGetUser(t *testing.T) {
 			mockError:        nil,
 		},
 		{
-			userId:           12,
+			userID:           12,
 			name:             "User not found",
 			expectedStatus:   http.StatusNotFound,
 			mockUser:         nil,
@@ -49,7 +50,7 @@ func TestGetUser(t *testing.T) {
 			mockError:        nil,
 		},
 		{
-			userId:           12,
+			userID:           12,
 			name:             "getting error fetching user",
 			expectedStatus:   http.StatusInternalServerError,
 			mockUser:         nil,
@@ -63,17 +64,17 @@ func TestGetUser(t *testing.T) {
 			mockUserService := user_mocks.NewMockUseCase(t)
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			s := handlers.NewServer(mockUserService, logger)
-			mockUserService.On("Get", user.ID(tt.userId)).Return(tt.mockUser, tt.mockError)
+			mockUserService.On("Get", user.ID(tt.userID)).Return(tt.mockUser, tt.mockError)
 			router := gin.Default()
 			router.GET("/api/v1/users/:id", func(c *gin.Context) {
 				id := c.Param("id")
-				userId, _ := strconv.Atoi(id)
-				s.GetUser(c, userId)
+				userID, _ := strconv.Atoi(id)
+				s.GetUser(c, userID)
 			})
 
 			// Create a request body
 
-			req := httptest.NewRequest(http.MethodGet, "/api/v1/users/"+strconv.Itoa(tt.userId), nil)
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/users/"+strconv.Itoa(tt.userID), nil)
 			w := httptest.NewRecorder()
 
 			router.ServeHTTP(w, req)
@@ -157,7 +158,7 @@ func TestAddUser(t *testing.T) {
 		expectedStatus   int
 		expectedResponse string
 		mockError        error
-		mockUserId       int
+		mockUserID       int
 	}{
 		{
 			name:             "user created with success",
@@ -165,7 +166,7 @@ func TestAddUser(t *testing.T) {
 			expectedRequest:  uf.CreateUserCreate(),
 			expectedResponse: `{"id":1}`,
 			mockError:        nil,
-			mockUserId:       1,
+			mockUserID:       1,
 		},
 		{
 			name:             "failed to create user",
@@ -173,7 +174,7 @@ func TestAddUser(t *testing.T) {
 			expectedRequest:  uf.CreateUserCreate(),
 			expectedResponse: `{"error":"internal error"}`,
 			mockError:        errors.New("internal error"),
-			mockUserId:       0,
+			mockUserID:       0,
 		},
 		{
 			name:             "failed to bind json",
@@ -181,7 +182,7 @@ func TestAddUser(t *testing.T) {
 			expectedRequest:  uf.CreateInvalidUserCreate(),
 			expectedResponse: `{"error":"failed to bind"}`,
 			mockError:        nil,
-			mockUserId:       0,
+			mockUserID:       0,
 		},
 	}
 
@@ -190,7 +191,7 @@ func TestAddUser(t *testing.T) {
 			mockUserService := user_mocks.NewMockUseCase(t)
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			s := handlers.NewServer(mockUserService, logger)
-			mockUserService.On("Create", mock.Anything).Return(user.ID(tt.mockUserId), tt.mockError).Maybe()
+			mockUserService.On("Create", mock.Anything).Return(user.ID(tt.mockUserID), tt.mockError).Maybe()
 			router := gin.Default()
 			router.POST("/api/v1/users/", s.AddUser)
 

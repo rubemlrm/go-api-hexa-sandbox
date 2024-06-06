@@ -3,8 +3,9 @@ package logger
 import (
 	"os"
 
-	"github.com/rubemlrm/go-api-bootstrap/config"
 	"log/slog"
+
+	"github.com/rubemlrm/go-api-bootstrap/config"
 )
 
 func NewLogger(cfg config.Logger) *slog.Logger {
@@ -14,13 +15,11 @@ func NewLogger(cfg config.Logger) *slog.Logger {
 
 	if cfg.Handler == "textHandler" {
 		return setTextLogger(opts)
-
 	}
-	return setJsonLogger(opts)
+	return setJSONLogger(opts)
 }
 
 func setLogLevel(ht string) slog.Level {
-
 	if ht == "Debug" {
 		return slog.LevelDebug
 	}
@@ -32,7 +31,7 @@ func setTextLogger(cfg slog.HandlerOptions) *slog.Logger {
 	return slog.New(handler)
 }
 
-func setJsonLogger(cfg slog.HandlerOptions) *slog.Logger {
+func setJSONLogger(cfg slog.HandlerOptions) *slog.Logger {
 	handler := slog.NewJSONHandler(os.Stdout, &cfg)
 	return slog.New(handler)
 }

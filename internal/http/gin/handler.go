@@ -1,13 +1,14 @@
-package gin_handler
+package gin
 
 import (
+	"log/slog"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/rubemlrm/go-api-bootstrap/internal/http/gin/handlers"
 	"github.com/rubemlrm/go-api-bootstrap/internal/http/gin/openapi"
 	"github.com/rubemlrm/go-api-bootstrap/user"
-	"log/slog"
-	"net/http"
 )
 
 type Engine struct {

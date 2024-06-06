@@ -1,23 +1,117 @@
+---
 name: tests
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  golangci:
-    name: lint
+  setup:
+    name: setup properties
     runs-on: ubuntu-latest
+    outputs:
+      code_changes: ${{ steps.code_changes.outputs.src }}
+      workflows_code_changes: ${{ steps.workflows_code_changes.outputs.src }}
+      configurations_changes: ${{ steps.configurations_changes.outputs.src }}
+      api_spec_changes: ${{ steps.api_spec_changes.outputs.src }}
+      push_to_default_branch: ${{ github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: code_changes
+        with:
+          filters: |
+            src:
+              - 'cmd/**'
+              - 'config/**'
+              - 'internal/**'
+              - 'pkg/**'
+              - 'tests/**'
+              - 'user/**'
+              - '!config/config.yaml'
+              - '!config/stubs/**'
+
+      - uses: dorny/paths-filter@v3
+        id: workflows_code_changes
+        with:
+          filters: |
+            src:
+              - ".github/workflows/**"
+      - uses: dorny/paths-filter@v3
+        id: configurations_changes
+        with:
+          filters: |
+            src:
+              - "config/config.yaml"
+              - "config/stubs/**"
+              - ".golangci.yaml"
+              - ".mockery.yaml"
+              - "codecov.yaml"
+              - "oapi-config.yaml"
+
+      - uses: dorny/paths-filter@v3
+        id: api_spec_changes
+        with:
+          filters: |
+            src:
+              - "spec/**"
+  test-yamls:
+    needs:
+      - setup
+    if: always() &&
+      needs.setup.outputs.workflows_code_changes == 'true' ||
+      needs.setup.outputs.configurations_changes == 'true' ||
+      needs.setup.outputs.api_spec_changes == 'true'
+    name: test-yamls
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yamllint
+        run: pip install yamllint
+      - name: Lint YAML files
+        run: yamllint .
+
+  run-tests:
+    name: run-tests
+    needs:
+      - setup
+    if: always() && needs.setup.outputs.code_changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["~1.22.1"]
     steps:
       - uses: actions/setup-go@v5
         with:
-          go-version: '>=1.20.3'
+          go-version: ${{ matrix.version }}
       - uses: actions/checkout@v4
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.58
+      - name: run tests with coverage
+        run: go test -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: rubemlrm/go-api-hexa-sandbox
+
+  updated-code-coverage:
+    name: update codecov changes
+    needs:
+      - setup
+    if: always() && needs.setup.outputs.push_to_default_branch == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["~1.22.1"]
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.version }}
+      - uses: actions/checkout@v4
       - name: run tests with coverage
         run: go test -coverprofile=coverage.txt -covermode=atomic ./...
       - name: Upload coverage to Codecov
