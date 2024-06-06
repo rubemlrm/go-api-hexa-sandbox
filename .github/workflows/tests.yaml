@@ -98,9 +98,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: rubemlrm/go-api-hexa-sandbox
 
-
-
-
   updated-code-coverage:
     name: update codecov changes
     needs:

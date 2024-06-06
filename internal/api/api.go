@@ -55,13 +55,13 @@ func (s Server) Start() error {
 }
 
 func prepareServerConfig(h http.Handler, httpConfig config.HTTP, logger *slog.Logger) (Server, error) {
-	_, err := strconv.Atoi(httpConfig.ReadTimeout)
+	rt, err := strconv.Atoi(httpConfig.ReadTimeout)
 
 	if err != nil {
 		return Server{}, &gin.HTTPConfigurationError{Input: "ReadTimeout"}
 	}
 
-	_, err = strconv.Atoi(httpConfig.WriteTimeout)
+	wt, err := strconv.Atoi(httpConfig.WriteTimeout)
 
 	if err != nil {
 		return Server{}, &gin.HTTPConfigurationError{Input: "WriteTimeout"}
@@ -70,7 +70,8 @@ func prepareServerConfig(h http.Handler, httpConfig config.HTTP, logger *slog.Lo
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%s", httpConfig.Address),
 		Handler:           h,
-		ReadHeaderTimeout: 120,
+		ReadHeaderTimeout: time.Duration(rt),
+		WriteTimeout:      time.Duration(wt),
 	}
 	logger.Info("server", "configuration", server)
 	return Server{server}, nil
