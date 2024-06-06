@@ -72,14 +72,14 @@ jobs:
         run: yamllint .
 
   run-tests:
-    name: lint
+    name: run-tests
     needs:
       - setup
     if: always() && needs.setup.outputs.code_changes == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: ["~1.20.1", "~1.21.1", "~1.22.1"]
+        version: ["~1.21.1", "~1.22.1"]
     steps:
       - uses: actions/setup-go@v5
         with:
