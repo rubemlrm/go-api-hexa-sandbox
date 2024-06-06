@@ -1,3 +1,4 @@
+---
 name: "Lint PR"
 
 on:
@@ -23,7 +24,8 @@ jobs:
           header: Failed to lint PR Title
           message: |
             Hello!
-            We require pull request titles to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/).
+            We require pull request titles to follow this
+            [guidelines](https://www.conventionalcommits.org/en/v1.0.0/).
             Details:
               ```
               ${{ steps.lint_pr_title.outputs.error_message }}

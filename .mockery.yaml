@@ -1,8 +1,9 @@
-with-expecter: True
+---
+with-expecter: true
 packages:
   github.com/rubemlrm/go-api-bootstrap/user:
     config:
-      all: True
+      all: true
       filename: "mock_{{.InterfaceName}}.go"
       dir: "{{.InterfaceDir}}/mocks/"
       mockname: "Mock{{.InterfaceName}}"
@@ -10,7 +11,7 @@ packages:
 
   github.com/rubemlrm/go-api-bootstrap/pkg/logger:
     config:
-      all: True
+      all: true
       filename: "mock_{{.InterfaceName}}.go"
       dir: "{{.InterfaceDir}}/mocks/"
       mockname: "Mock{{.InterfaceName}}"

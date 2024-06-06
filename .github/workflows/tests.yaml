@@ -1,9 +1,10 @@
+---
 name: tests
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   setup:
@@ -12,6 +13,7 @@ jobs:
     outputs:
       code_changes: ${{ steps.code_changes.outputs.src }}
       workflows_code_changes: ${{ steps.workflows_code_changes.outputs.src }}
+      configurations_changes: ${{ steps.configurations_changes.outputs.src }}
       api_spec_changes: ${{ steps.api_spec_changes.outputs.src }}
     steps:
       - uses: actions/checkout@v4
@@ -26,12 +28,28 @@ jobs:
               - 'pkg/**'
               - 'tests/**'
               - 'user/**'
+          backend:
+            - '!config/config.yaml'
+            - '!config/stubs/**'
+
       - uses: dorny/paths-filter@v3
         id: workflows_code_changes
         with:
           filters: |
             src:
               - ".github/workflows/**"
+      - uses: dorny/paths-filter@v3
+        id: configurations_changes
+        with:
+          filters: |
+            src:
+              - "config/config.yaml"
+              - "config/stubs/**"
+              - ".golangci.yaml"
+              - ".mockery.yaml"
+              - "codecov.yaml"
+              - "oapi-config.yaml"
+
       - uses: dorny/paths-filter@v3
         id: api_spec_changes
         with:
@@ -40,19 +58,25 @@ jobs:
               - "spec/**"
   test-yamls:
     needs:
-     - setup
-    if: always() &&  needs.setup.outputs.workflows_code_changes == 'true'
+      - setup
+    if: always() &&
+      needs.setup.outputs.workflows_code_changes == 'true' ||
+      needs.setup.outputs.configurations_changes == 'true' ||
+      needs.setup.outputs.api_spec_changes == 'true'
     name: test-yamls
     runs-on: ubuntu-latest
     steps:
-       - uses: actions/checkout@v4
-       - name: Install yamllint
-         run: pip install yamllint
-       - name: Lint YAML files
-         run: yamllint .
+      - uses: actions/checkout@v4
+      - name: Install yamllint
+        run: pip install yamllint
+      - name: Lint YAML files
+        run: yamllint .
 
   run-tests:
     name: lint
+    needs:
+      - setup
+    if: always() && needs.setup.outputs.code_changes == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
