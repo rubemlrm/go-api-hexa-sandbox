@@ -15,6 +15,7 @@ type Validater interface {
 	RegisterCustomValidationRule(tag string, fn validator.Func) error
 
 	Check(val interface{}) bool
+	CheckWithTranslations(val interface{}) error
 }
 
 type Validator struct {
