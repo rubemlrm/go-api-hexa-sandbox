@@ -21,3 +21,14 @@ func TestUserEnabled(t *testing.T) {
 	isEnabled := user.CheckIsEnabled()
 	assert.Equal(t, isEnabled, true)
 }
+
+func TestUserCreateValidate(t *testing.T) {
+	user := user.UserCreate{
+		Name:     "testing",
+		Email:    "teste",
+		Password: "aweso2me",
+	}
+
+	err := user.Validate()
+	assert.NoError(t, err)
+}

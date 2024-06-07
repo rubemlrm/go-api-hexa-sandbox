@@ -1,6 +1,8 @@
 package user
 
 import (
+	"github.com/go-playground/validator/v10"
+	"github.com/rubemlrm/go-api-bootstrap/pkg/validations"
 	"time"
 )
 
@@ -8,8 +10,36 @@ type ID int
 
 type UserCreate struct {
 	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required,min=3"`
+	Email    string `json:"email" binding:"required" validate:"email"`
+	Password string `json:"password" binding:"required,min=3" validate:"is-awesome"`
+}
+
+func (u *UserCreate) Validate() error {
+	vl := validations.NewValidator("en")
+
+	err := vl.RegisterCustomValidationRule("is-awesome", ValidateMyVal)
+
+	if err != nil {
+		return err
+	}
+
+	err = vl.RegisterCustomTranslation("is-awesome", "{0} must have a value!")
+
+	if err != nil {
+		return err
+	}
+
+	err = vl.CheckWithTranslations(u)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// ValidateMyVal implements validator.Func
+func ValidateMyVal(fl validator.FieldLevel) bool {
+	return fl.Field().String() == "awesome"
 }
 
 type User struct {
