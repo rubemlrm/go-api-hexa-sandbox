@@ -3,11 +3,12 @@ package validations
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	"reflect"
-	"strings"
 )
 
 type Validater interface {
@@ -46,6 +47,13 @@ func NewValidator(locale string) *Validator {
 }
 
 func (v *Validator) RegisterCustomTranslation(tag string, message string) error {
+	if tag == "" {
+		return fmt.Errorf("tag name can't be empty")
+	}
+
+	if message == "" {
+		return fmt.Errorf("message can't be empty")
+	}
 	err := v.validate.RegisterTranslation(tag, v.translations, func(ut ut.Translator) error {
 		return ut.Add(tag, message, true)
 	}, func(ut ut.Translator, fe validator.FieldError) string {
@@ -78,7 +86,7 @@ func (v *Validator) RegisterCustomValidationRule(tag string, fn validator.Func) 
 func (v *Validator) Check(val interface{}) error {
 	err := v.validate.Struct(val)
 	if err != nil {
-		return nil
+		return errors.New(fmt.Sprintf("failed to validate: %s", err))
 	}
 	return nil
 }

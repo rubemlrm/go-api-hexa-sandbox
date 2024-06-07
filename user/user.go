@@ -1,9 +1,10 @@
 package user
 
 import (
+	"time"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/rubemlrm/go-api-bootstrap/pkg/validations"
-	"time"
 )
 
 type ID int
