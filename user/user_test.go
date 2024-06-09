@@ -2,10 +2,11 @@ package user_test
 
 import (
 	"errors"
-	"github.com/rubemlrm/go-api-bootstrap/pkg/validations"
-	"github.com/rubemlrm/go-api-bootstrap/user/factories"
 	"testing"
 	"time"
+
+	"github.com/rubemlrm/go-api-bootstrap/pkg/validations"
+	"github.com/rubemlrm/go-api-bootstrap/user/factories"
 
 	"github.com/rubemlrm/go-api-bootstrap/user"
 	"github.com/stretchr/testify/assert"

@@ -3,11 +3,12 @@ package validations
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	vl "github.com/go-playground/validator/v10"
-	"reflect"
-	"strings"
 )
 
 type Validater interface {
@@ -52,7 +53,6 @@ func WithCustomFieldLabel(label string) Option {
 			return fmt.Errorf("custom field label is required")
 		}
 		v.validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-
 			name := strings.SplitN(fld.Tag.Get(label), ",", 1)[0]
 			if name == "-" {
 				return ""
