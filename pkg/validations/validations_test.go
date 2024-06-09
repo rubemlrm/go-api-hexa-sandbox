@@ -50,7 +50,63 @@ func TestRegisterCustomTranslation(t *testing.T) {
 	}
 }
 
-func TestRegisterCustomValidationRule(t *testing.T) {
+func TestWithCustomFieldLabel(t *testing.T) {
+	type input struct {
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"-" validate:"required"`
+	}
+
+	tests := []struct {
+		name             string
+		labelValue       string
+		expectedError    error
+		expectErrorOnNew bool
+		input            *input
+	}{
+		{
+			name:             "failed to define custom field label",
+			labelValue:       "",
+			expectedError:    errors.New("custom field label is required"),
+			input:            &input{},
+			expectErrorOnNew: true,
+		},
+		{
+			name:          "check input name after failed struct validation",
+			labelValue:    "json",
+			expectedError: errors.New("failed to validate: Key: 'input.email' Error:Field validation for 'email' failed on the 'email' tag"),
+			input: &input{
+				Email:    "test",
+				Password: faker.Password(),
+			},
+			expectErrorOnNew: false,
+		},
+		{
+			name:          "check input omit after failed struct validation",
+			labelValue:    "json",
+			expectedError: errors.New("failed to validate: Key: 'input.Password' Error:Field validation for 'Password' failed on the 'required' tag"),
+			input: &input{
+				Email:    faker.Email(),
+				Password: "",
+			},
+			expectErrorOnNew: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vl, err := New("en", WithCustomFieldLabel(tt.labelValue))
+			if tt.expectErrorOnNew == true {
+				assert.Equal(t, tt.expectedError, err)
+				assert.Error(t, err)
+				return
+			}
+			err = vl.Check(tt.input)
+			assert.Equal(t, tt.expectedError, err)
+		})
+	}
+}
+
+func TestWithCustomValidationRule(t *testing.T) {
 	tests := []struct {
 		name          string
 		validationTag string

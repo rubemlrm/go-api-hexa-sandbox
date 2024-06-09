@@ -12,11 +12,12 @@ type ID int
 type UserCreate struct {
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required" validate:"email"`
-	Password string `json:"password" binding:"required,min=3" validate:"is-awesome"`
+	Password string `json:"password" binding:"required,min=3"`
 }
 
-func (u *UserCreate) Validate() error {
-	vl, err := validations.New("en",
+func (u *UserCreate) Validate(vf validations.ValidationFunc) error {
+	vl, err := vf("en",
+		validations.WithCustomFieldLabel("json"),
 		validations.WithCustomValidationRule("is-awesome", ValidateMyVal),
 		validations.WithCustomTranslation("is-awesome", "{0} must have a value!"),
 	)
@@ -32,7 +33,6 @@ func (u *UserCreate) Validate() error {
 	return nil
 }
 
-// ValidateMyVal implements validator.Func
 func ValidateMyVal(fl validator.FieldLevel) bool {
 	return fl.Field().String() == "awesome"
 }

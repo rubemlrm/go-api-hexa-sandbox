@@ -1,6 +1,9 @@
 package user_test
 
 import (
+	"errors"
+	"github.com/rubemlrm/go-api-bootstrap/pkg/validations"
+	"github.com/rubemlrm/go-api-bootstrap/user/factories"
 	"testing"
 	"time"
 
@@ -8,8 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func mockValidationFuncError(_ string, _ ...validations.Option) (*validations.Validator, error) {
+	return &validations.Validator{}, errors.New("validation initialization error")
+}
+
 func TestUserEnabled(t *testing.T) {
-	user := user.User{
+	u := user.User{
 		Name:      "testing",
 		Email:     "teste@teste.com",
 		Password:  "ChangeMe",
@@ -18,17 +25,42 @@ func TestUserEnabled(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	isEnabled := user.CheckIsEnabled()
+	isEnabled := u.CheckIsEnabled()
 	assert.Equal(t, isEnabled, true)
 }
 
-func TestUserCreateValidate(t *testing.T) {
-	user := user.UserCreate{
-		Name:     "testing",
-		Email:    "teste@teste.pt",
-		Password: "awesome",
+func TestUserValidate(t *testing.T) {
+	uf := factories.UserFactory{}
+	tests := []struct {
+		name           string
+		user           *user.UserCreate
+		validationFunc validations.ValidationFunc
+		expectedErr    error
+	}{
+		{
+			name:           "fail validation initialization error",
+			user:           &user.UserCreate{},
+			validationFunc: mockValidationFuncError,
+			expectedErr:    errors.New("validation initialization error"),
+		},
+		{
+			name:           "user validated with success",
+			user:           uf.CreateUserCreate(),
+			validationFunc: validations.New,
+			expectedErr:    nil,
+		},
+		{
+			name:           "user failed to validate",
+			user:           uf.CreateInvalidUserCreate(),
+			validationFunc: validations.New,
+			expectedErr:    errors.New("failed to validate: map[UserCreate.email:Key: 'UserCreate.email' Error:Field validation for 'email' failed on the 'email' tag]"),
+		},
 	}
 
-	err := user.Validate()
-	assert.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.user.Validate(tt.validationFunc)
+			assert.Equal(t, tt.expectedErr, err)
+		})
+	}
 }

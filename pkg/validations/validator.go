@@ -3,12 +3,11 @@ package validations
 import (
 	"errors"
 	"fmt"
-	"reflect"
-	"strings"
-
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	vl "github.com/go-playground/validator/v10"
+	"reflect"
+	"strings"
 )
 
 type Validater interface {
@@ -21,11 +20,11 @@ type Validator struct {
 	translations ut.Translator
 }
 
-type validatorError struct {
-	error
-}
+type ValidationFunc func(string, ...Option) (*Validator, error)
 
-func New(locale string, options ...func(*Validator, *validatorError)) (*Validator, error) {
+type Option func(v *Validator) error
+
+func New(locale string, options ...Option) (*Validator, error) {
 	lt := en.New()
 	uni := ut.New(lt, lt)
 
@@ -37,58 +36,61 @@ func New(locale string, options ...func(*Validator, *validatorError)) (*Validato
 		trans,
 	}
 
-	// Use JSON tag names for errors instead of Go struct names.
-	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-		if name == "-" {
-			return ""
-		}
-		return name
-	})
-
 	for _, o := range options {
-		ev := &validatorError{}
-		o(validator, ev)
-		if ev.error != nil {
-			return nil, ev.error
+		err := o(validator)
+		if err != nil {
+			return nil, err
 		}
 	}
 
 	return validator, nil
 }
 
-func WithCustomTranslation(tag string, message string) func(*Validator, *validatorError) {
-	return func(v *Validator, ev *validatorError) {
+func WithCustomFieldLabel(label string) Option {
+	return func(v *Validator) error {
+		if label == "" {
+			return fmt.Errorf("custom field label is required")
+		}
+		v.validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+
+			name := strings.SplitN(fld.Tag.Get(label), ",", 1)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+		return nil
+	}
+}
+func WithCustomTranslation(tag string, message string) Option {
+	return func(v *Validator) error {
 		if tag == "" {
-			ev.error = fmt.Errorf("tag name can't be empty")
-			return
+			return fmt.Errorf("tag name can't be empty")
 		}
 
 		if message == "" {
-			ev.error = fmt.Errorf("message can't be empty")
-			return
+			return fmt.Errorf("message can't be empty")
 		}
-		ev.error = v.validate.RegisterTranslation(tag, v.translations, func(ut ut.Translator) error {
+		err := v.validate.RegisterTranslation(tag, v.translations, func(ut ut.Translator) error {
 			return ut.Add(tag, message, true)
 		}, func(ut ut.Translator, fe vl.FieldError) string {
 			t, _ := ut.T(tag, fe.Field())
 			return t
 		})
+		return err
 	}
 }
 
-func WithCustomValidationRule(tag string, fn vl.Func) func(*Validator, *validatorError) {
-	return func(v *Validator, ev *validatorError) {
+func WithCustomValidationRule(tag string, fn vl.Func) Option {
+	return func(v *Validator) error {
 		if tag == "" {
-			ev.error = fmt.Errorf("tag name can't be empty")
-			return
+			return fmt.Errorf("tag name can't be empty")
 		}
 
 		if fn == nil {
-			ev.error = fmt.Errorf("function can't be nil")
-			return
+			return fmt.Errorf("function can't be nil")
 		}
-		ev.error = v.validate.RegisterValidation(tag, fn)
+		return v.validate.RegisterValidation(tag, fn)
 	}
 }
 
