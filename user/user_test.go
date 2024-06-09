@@ -25,8 +25,8 @@ func TestUserEnabled(t *testing.T) {
 func TestUserCreateValidate(t *testing.T) {
 	user := user.UserCreate{
 		Name:     "testing",
-		Email:    "teste",
-		Password: "aweso2me",
+		Email:    "teste@teste.pt",
+		Password: "awesome",
 	}
 
 	err := user.Validate()

@@ -2,10 +2,11 @@ package validations
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/go-faker/faker/v4"
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestRegisterCustomTranslation(t *testing.T) {
@@ -43,9 +44,8 @@ func TestRegisterCustomTranslation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			vl := NewValidator("en")
-			err := vl.RegisterCustomTranslation(tt.translationTag, tt.translationMessage)
-			assert.Equal(t, err, tt.expectedError)
+			_, err := New("en", WithCustomTranslation(tt.translationTag, tt.translationMessage))
+			assert.Equal(t, tt.expectedError, err)
 		})
 	}
 }
@@ -79,8 +79,8 @@ func TestRegisterCustomValidationRule(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			vl := NewValidator("en")
-			err := vl.RegisterCustomValidationRule(tt.validationTag, tt.validatorFunc)
+			_, err := New("en", WithCustomValidationRule(tt.validationTag, tt.validatorFunc))
+
 			assert.Equal(t, err, tt.expectedError)
 		})
 	}
@@ -111,8 +111,9 @@ func TestCheck(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			vl := NewValidator("en")
-			err := vl.Check(tt.input)
+			vl, err := New("en")
+			assert.NoError(t, err)
+			err = vl.Check(tt.input)
 			assert.Equal(t, err, tt.expectedError)
 		})
 	}
@@ -148,8 +149,8 @@ func TestCheckWithTranslations(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			vl := NewValidator("en")
-			err := vl.RegisterCustomTranslation(tt.translationTag, tt.translationMessage)
+			vl, err := New("en", WithCustomTranslation(tt.translationTag, tt.translationMessage))
+
 			assert.NoError(t, err)
 			err = vl.CheckWithTranslations(tt.input)
 			assert.Equal(t, err, tt.expectedError)

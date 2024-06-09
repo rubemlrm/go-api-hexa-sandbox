@@ -16,22 +16,16 @@ type UserCreate struct {
 }
 
 func (u *UserCreate) Validate() error {
-	vl := validations.NewValidator("en")
-
-	err := vl.RegisterCustomValidationRule("is-awesome", ValidateMyVal)
-
-	if err != nil {
-		return err
-	}
-
-	err = vl.RegisterCustomTranslation("is-awesome", "{0} must have a value!")
+	vl, err := validations.New("en",
+		validations.WithCustomValidationRule("is-awesome", ValidateMyVal),
+		validations.WithCustomTranslation("is-awesome", "{0} must have a value!"),
+	)
 
 	if err != nil {
 		return err
 	}
 
 	err = vl.CheckWithTranslations(u)
-
 	if err != nil {
 		return err
 	}

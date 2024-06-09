@@ -8,28 +8,34 @@ import (
 
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator/v10"
+	vl "github.com/go-playground/validator/v10"
 )
 
 type Validater interface {
-	RegisterCustomTranslation(tag string, message string) error
-	RegisterCustomValidationRule(tag string, fn validator.Func) error
-
 	Check(val interface{}) bool
 	CheckWithTranslations(val interface{}) error
 }
 
 type Validator struct {
-	validate     *validator.Validate
+	validate     *vl.Validate
 	translations ut.Translator
 }
 
-func NewValidator(locale string) *Validator {
+type validatorError struct {
+	error
+}
+
+func New(locale string, options ...func(*Validator, *validatorError)) (*Validator, error) {
 	lt := en.New()
 	uni := ut.New(lt, lt)
 
-	validate := validator.New(validator.WithRequiredStructEnabled())
+	validate := vl.New()
 	trans, _ := uni.GetTranslator(locale)
+
+	validator := &Validator{
+		validate,
+		trans,
+	}
 
 	// Use JSON tag names for errors instead of Go struct names.
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -40,47 +46,50 @@ func NewValidator(locale string) *Validator {
 		return name
 	})
 
-	return &Validator{
-		validate,
-		trans,
+	for _, o := range options {
+		ev := &validatorError{}
+		o(validator, ev)
+		if ev.error != nil {
+			return nil, ev.error
+		}
+	}
+
+	return validator, nil
+}
+
+func WithCustomTranslation(tag string, message string) func(*Validator, *validatorError) {
+	return func(v *Validator, ev *validatorError) {
+		if tag == "" {
+			ev.error = fmt.Errorf("tag name can't be empty")
+			return
+		}
+
+		if message == "" {
+			ev.error = fmt.Errorf("message can't be empty")
+			return
+		}
+		ev.error = v.validate.RegisterTranslation(tag, v.translations, func(ut ut.Translator) error {
+			return ut.Add(tag, message, true)
+		}, func(ut ut.Translator, fe vl.FieldError) string {
+			t, _ := ut.T(tag, fe.Field())
+			return t
+		})
 	}
 }
 
-func (v *Validator) RegisterCustomTranslation(tag string, message string) error {
-	if tag == "" {
-		return fmt.Errorf("tag name can't be empty")
-	}
+func WithCustomValidationRule(tag string, fn vl.Func) func(*Validator, *validatorError) {
+	return func(v *Validator, ev *validatorError) {
+		if tag == "" {
+			ev.error = fmt.Errorf("tag name can't be empty")
+			return
+		}
 
-	if message == "" {
-		return fmt.Errorf("message can't be empty")
+		if fn == nil {
+			ev.error = fmt.Errorf("function can't be nil")
+			return
+		}
+		ev.error = v.validate.RegisterValidation(tag, fn)
 	}
-	err := v.validate.RegisterTranslation(tag, v.translations, func(ut ut.Translator) error {
-		return ut.Add(tag, message, true)
-	}, func(ut ut.Translator, fe validator.FieldError) string {
-		t, _ := ut.T(tag, fe.Field())
-		return t
-	})
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (v *Validator) RegisterCustomValidationRule(tag string, fn validator.Func) error {
-	if tag == "" {
-		return fmt.Errorf("tag name can't be empty")
-	}
-
-	if fn == nil {
-		return fmt.Errorf("function can't be nil")
-	}
-
-	err := v.validate.RegisterValidation(tag, fn)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (v *Validator) Check(val interface{}) error {
@@ -94,7 +103,8 @@ func (v *Validator) Check(val interface{}) error {
 func (v *Validator) CheckWithTranslations(val interface{}) error {
 	err := v.validate.Struct(val)
 	if err != nil {
-		trs := err.(validator.ValidationErrors)
+		var trs vl.ValidationErrors
+		errors.As(err, &trs)
 		return errors.New(fmt.Sprintf("failed to validate: %s", trs.Translate(v.translations)))
 	}
 	return nil
