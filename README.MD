@@ -1,5 +1,5 @@
 [![codecov](https://codecov.io/gh/rubemlrm/go-api-hexa-sandbox/graph/badge.svg?token=DN0SJIIHXS)](https://codecov.io/gh/rubemlrm/go-api-hexa-sandbox)
-[![CodeQL](https://github.com/rubemlrm/go-api-hexa-sandbox/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/rubemlrm/go-api-hexa-sandbox/actions/workflows/codeql-analysis.yml)
+[![CodeQL](https://github.com/rubemlrm/go-api-hexa-sandbox/actions/workflows/codeql-analysis.yaml/badge.svg)](https://github.com/rubemlrm/go-api-hexa-sandbox/actions/workflows/codeql-analysis.yaml)
 
 # Go Api hexa sandbox
 

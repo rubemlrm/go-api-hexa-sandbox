@@ -21,7 +21,7 @@ func (s *UserFactory) CreateUser() *user.User {
 func (s *UserFactory) CreateUserCreate() *user.UserCreate {
 	return &user.UserCreate{
 		Name:     faker.Name(),
-		Email:    faker.Password(),
+		Email:    faker.Email(),
 		Password: faker.Password(),
 	}
 }
