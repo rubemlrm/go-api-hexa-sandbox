@@ -18,7 +18,7 @@ start:
 	go run $(SOURCE_MAIN)
 
 install-dependencies:
-	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+	go install github.com/oapi-codegen/oapi-codegen/v2
 	go install github.com/pressly/goose/v3/cmd/goose@latest
 
 
