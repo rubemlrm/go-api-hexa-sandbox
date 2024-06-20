@@ -9,12 +9,12 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-type TestContainer struct {
+type PostgresTestContainer struct {
 	testcontainers.Container
 	DSN string
 }
 
-func StartContainer(ctx context.Context) (*TestContainer, error) {
+func StartPostgresContainer(ctx context.Context) (*PostgresTestContainer, error) {
 	req := testcontainers.ContainerRequest{
 		Env: map[string]string{
 			"POSTGRES_USER":     "user",
@@ -50,7 +50,7 @@ func StartContainer(ctx context.Context) (*TestContainer, error) {
 
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", "user", "password", host, mappedPort.Port(), "postgres")
 
-	return &TestContainer{
+	return &PostgresTestContainer{
 		Container: container,
 		DSN:       dsn,
 	}, nil

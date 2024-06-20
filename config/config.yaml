@@ -4,8 +4,8 @@ app:
 
 http:
   address: '8080'
-  readTimeout: '30'
-  writeTimeout: '30'
+  readTimeout: '120'
+  writeTimeout: '120'
 
 database:
   schema:

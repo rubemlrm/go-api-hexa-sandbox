@@ -50,7 +50,7 @@ func TestStart(t *testing.T) {
 			WriteTimeout: "zxv",
 		}
 		server, err := api.NewServer(mockHandler{}, httpConfigs, l)
-		assert.IsType(t, server, api.Server{Server: (*http.Server)(nil)})
+		assert.IsType(t, server, &api.Server{Server: (*http.Server)(nil)})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "error validating configuration: ReadTimeout")
 		assert.IsType(t, err, &gin.HTTPConfigurationError{})
@@ -63,7 +63,7 @@ func TestStart(t *testing.T) {
 			WriteTimeout: "zxv",
 		}
 		server, err := api.NewServer(mockHandler{}, httpConfigs, l)
-		assert.IsType(t, server, api.Server{Server: (*http.Server)(nil)})
+		assert.IsType(t, server, &api.Server{Server: (*http.Server)(nil)})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "error validating configuration: WriteTimeout")
 		assert.IsType(t, err, &gin.HTTPConfigurationError{})

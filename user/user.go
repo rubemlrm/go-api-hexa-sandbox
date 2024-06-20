@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -48,12 +49,12 @@ type User struct {
 }
 
 type Reader interface {
-	Get(id ID) (*User, error)
-	All() (*[]User, error)
+	Get(ctx context.Context, id ID) (*User, error)
+	All(ctx context.Context) (*[]User, error)
 }
 
 type Writer interface {
-	Create(u *UserCreate) (ID, error)
+	Create(ctx context.Context, u *UserCreate) (ID, error)
 }
 
 type Repository interface {
@@ -63,9 +64,9 @@ type Repository interface {
 
 // UseCase Interface
 type UseCase interface {
-	Get(id ID) (*User, error)
-	Create(user *UserCreate) (ID, error)
-	All() (*[]User, error)
+	Get(ctx context.Context, id ID) (*User, error)
+	Create(ctx context.Context, user *UserCreate) (ID, error)
+	All(ctx context.Context) (*[]User, error)
 }
 
 func (user User) CheckIsEnabled() (enabled bool) {
