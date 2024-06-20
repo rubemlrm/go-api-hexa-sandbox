@@ -1,12 +1,13 @@
 package user_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
 	"github.com/rubemlrm/go-api-bootstrap/user"
 	"github.com/rubemlrm/go-api-bootstrap/user/factories"
-	user_mocks "github.com/rubemlrm/go-api-bootstrap/user/mocks"
+	usermocks "github.com/rubemlrm/go-api-bootstrap/user/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,11 +41,12 @@ func TestUserCreation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := user_mocks.NewMockRepository(t)
-			repo.On("Create", tt.user).Return(user.ID(tt.mockUserID), tt.mockError).Once()
+			repo := usermocks.NewMockRepository(t)
+			ctx := context.Background()
+			repo.On("Create", ctx, tt.user).Return(user.ID(tt.mockUserID), tt.mockError).Once()
 			service := user.NewService(repo, nil)
 			// act
-			userCreate, err := service.Create(tt.user)
+			userCreate, err := service.Create(ctx, tt.user)
 			// assert
 			if tt.mockError != nil {
 				assert.NotNil(t, err)
@@ -86,13 +88,13 @@ func TestServiceGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// arrange
-			repo := user_mocks.NewMockRepository(t)
-
-			repo.On("Get", user.ID(tt.mockUserID)).Return(tt.user, tt.mockError).Once()
+			repo := usermocks.NewMockRepository(t)
+			ctx := context.Background()
+			repo.On("Get", ctx, user.ID(tt.mockUserID)).Return(tt.user, tt.mockError).Once()
 
 			service := user.NewService(repo, nil)
 			// act
-			userFound, err := service.Get(user.ID(tt.mockUserID))
+			userFound, err := service.Get(ctx, user.ID(tt.mockUserID))
 
 			// assert
 			if tt.mockError != nil {
@@ -131,13 +133,13 @@ func TestAll(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// arrange
-			repo := user_mocks.NewMockRepository(t)
-
-			repo.On("All").Return(tt.users, tt.mockError).Once()
+			repo := usermocks.NewMockRepository(t)
+			ctx := context.Background()
+			repo.On("All", ctx).Return(tt.users, tt.mockError).Once()
 
 			service := user.NewService(repo, nil)
 			// act
-			userFound, err := service.All()
+			userFound, err := service.All(ctx)
 
 			// assert
 			if tt.mockError != nil {

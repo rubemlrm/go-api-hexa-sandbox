@@ -13,7 +13,7 @@ import (
 	gooseTesting "github.com/rubemlrm/go-api-bootstrap/tests/goose"
 	"github.com/rubemlrm/go-api-bootstrap/tests/testcontainers"
 	"github.com/rubemlrm/go-api-bootstrap/user"
-	user_postgres "github.com/rubemlrm/go-api-bootstrap/user/postgres"
+	userpostgres "github.com/rubemlrm/go-api-bootstrap/user/postgres"
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ import (
 )
 
 type UserRepositoryTestSuite struct {
-	testcontainer *testcontainers.TestContainer
+	testcontainer *testcontainers.PostgresTestContainer
 	suite.Suite
 	DB *sql.DB
 }
@@ -30,7 +30,7 @@ func (s *UserRepositoryTestSuite) SetupSuite() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer ctxCancel()
 
-	psqlContainer, err := testcontainers.StartContainer(ctx)
+	psqlContainer, err := testcontainers.StartPostgresContainer(ctx)
 	s.Require().NoError(err)
 
 	s.testcontainer = psqlContainer
@@ -47,13 +47,14 @@ func (s *UserRepositoryTestSuite) TestUserGet() {
 		lg := logger.NewLogger(config.Logger{
 			Level: "Debug",
 		})
+		ctx := context.Background()
 		uu := factories.GenerateUsers(10)
 		ux := uu[0]
 		err := factories.GenerateUsersOnDB(s.DB, uu)
 		assert.NoError(t, err)
 
-		repository := user_postgres.NewConnection(s.DB, lg)
-		u, err := repository.Get(ux.ID)
+		repository := userpostgres.NewConnection(s.DB, lg)
+		u, err := repository.Get(ctx, ux.ID)
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), u.Name, ux.Name)
 	})
@@ -78,8 +79,9 @@ func (s *UserRepositoryTestSuite) TestUserCreation() {
 			lg := logger.NewLogger(config.Logger{
 				Level: "Debug",
 			})
-			repository := user_postgres.NewConnection(s.DB, lg)
-			id, err := repository.Create(&tt.user)
+			ctx := context.Background()
+			repository := userpostgres.NewConnection(s.DB, lg)
+			id, err := repository.Create(ctx, &tt.user)
 			if tt.expectedError != nil {
 				assert.NoError(s.T(), err)
 			}
@@ -108,8 +110,9 @@ func (s *UserRepositoryTestSuite) TestUserList() {
 			lg := logger.NewLogger(config.Logger{
 				Level: "Debug",
 			})
-			repository := user_postgres.NewConnection(s.DB, lg)
-			uu, err := repository.All()
+			ctx := context.Background()
+			repository := userpostgres.NewConnection(s.DB, lg)
+			uu, err := repository.All(ctx)
 
 			if tt.requiredSeed == true {
 				fu := factories.GenerateUsers(tt.expectedTotal)

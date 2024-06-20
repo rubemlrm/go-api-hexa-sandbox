@@ -20,15 +20,15 @@ type Server struct {
 	*http.Server
 }
 
-func NewServer(h http.Handler, httpConfig config.HTTP, logger *slog.Logger) (Server, error) {
+func NewServer(h http.Handler, httpConfig config.HTTP, logger *slog.Logger) (*Server, error) {
 	server, err := prepareServerConfig(h, httpConfig, logger)
 	if err != nil {
-		return Server{}, err
+		return &Server{}, err
 	}
 	return server, err
 }
 
-func (s Server) Start() error {
+func (s *Server) Start() error {
 	// init empty variable to store errors from go routines
 	var err error
 
@@ -54,27 +54,27 @@ func (s Server) Start() error {
 	return err
 }
 
-func prepareServerConfig(h http.Handler, httpConfig config.HTTP, logger *slog.Logger) (Server, error) {
+func prepareServerConfig(h http.Handler, httpConfig config.HTTP, logger *slog.Logger) (*Server, error) {
 	rt, err := strconv.Atoi(httpConfig.ReadTimeout)
 
 	if err != nil {
-		return Server{}, &gin.HTTPConfigurationError{Input: "ReadTimeout"}
+		return &Server{}, &gin.HTTPConfigurationError{Input: "ReadTimeout"}
 	}
 
 	wt, err := strconv.Atoi(httpConfig.WriteTimeout)
 
 	if err != nil {
-		return Server{}, &gin.HTTPConfigurationError{Input: "WriteTimeout"}
+		return &Server{}, &gin.HTTPConfigurationError{Input: "WriteTimeout"}
 	}
 
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%s", httpConfig.Address),
 		Handler:           h,
-		ReadHeaderTimeout: time.Duration(rt),
-		WriteTimeout:      time.Duration(wt),
+		ReadHeaderTimeout: time.Duration(rt) * time.Second,
+		WriteTimeout:      time.Duration(wt) * time.Second,
 	}
-	logger.Info("server", "configuration", server)
-	return Server{server}, nil
+	logger.Info("server", "configuration", "teste")
+	return &Server{server}, nil
 }
 
 func (s *Server) startListening() error {

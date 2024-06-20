@@ -1,6 +1,9 @@
 ---
 version: "3.7"
 
+networks:
+  go-api-hexa-sandbox:
+
 services:
   postgres:
     container_name: postgres
@@ -14,3 +17,13 @@ services:
       POSTGRES_DB: ${DATABASE_SCHEMA}
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    networks:
+      - go-api-hexa-sandbox
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - go-api-hexa-sandbox
+    ports:
+      - 6379:6379

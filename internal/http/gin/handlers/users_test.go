@@ -64,7 +64,7 @@ func TestGetUser(t *testing.T) {
 			mockUserService := user_mocks.NewMockUseCase(t)
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			s := handlers.NewServer(mockUserService, logger)
-			mockUserService.On("Get", user.ID(tt.userID)).Return(tt.mockUser, tt.mockError)
+			mockUserService.On("Get", mock.Anything, user.ID(tt.userID)).Return(tt.mockUser, tt.mockError)
 			router := gin.Default()
 			router.GET("/api/v1/users/:id", func(c *gin.Context) {
 				id := c.Param("id")
@@ -129,7 +129,7 @@ func TestListUsers(t *testing.T) {
 			mockUserService := user_mocks.NewMockUseCase(t)
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			s := handlers.NewServer(mockUserService, logger)
-			mockUserService.On("All").Return(tt.mockResultUsers, tt.mockError)
+			mockUserService.On("All", mock.Anything).Return(tt.mockResultUsers, tt.mockError)
 			router := gin.Default()
 			router.GET("/api/v1/users/", func(c *gin.Context) {
 				s.ListUsers(c)
@@ -191,7 +191,7 @@ func TestAddUser(t *testing.T) {
 			mockUserService := user_mocks.NewMockUseCase(t)
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			s := handlers.NewServer(mockUserService, logger)
-			mockUserService.On("Create", mock.Anything).Return(user.ID(tt.mockUserID), tt.mockError).Maybe()
+			mockUserService.On("Create", mock.Anything, mock.Anything).Return(user.ID(tt.mockUserID), tt.mockError).Maybe()
 			router := gin.Default()
 			router.POST("/api/v1/users/", s.AddUser)
 
