@@ -3,6 +3,9 @@ name: go-api-hexa-sandbox
 networks:
   go-api-hexa-sandbox:
 
+networks:
+  go-api-hexa-sandbox:
+
 services:
   postgres:
     container_name: postgres
