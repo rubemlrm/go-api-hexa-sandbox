@@ -8,7 +8,8 @@ on:
       - edited
       - synchronize
   permissions:
-    pull-requests: read
+    pull-requests: write
+    statuses: write
 jobs:
   main:
     name: Validate PR title
