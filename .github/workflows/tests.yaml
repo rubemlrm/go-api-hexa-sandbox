@@ -86,6 +86,8 @@ jobs:
         with:
           go-version: ${{ matrix.version }}
       - uses: actions/checkout@v4
+      - name: get dependencies
+        run: go mod download
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
