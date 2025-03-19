@@ -1,5 +1,4 @@
----
-version: "3.7"
+name: go-api-hexa-sandbox
 
 networks:
   go-api-hexa-sandbox:
@@ -27,3 +26,16 @@ services:
       - go-api-hexa-sandbox
     ports:
       - 6379:6379
+  jaeger:
+    image: jaegertracing/all-in-one:1.67.0
+    restart: always
+    ports:
+      - 5775:5775/udp
+      - 6832:6832/udp
+      - 5778:5778
+      - 6831:6831
+      - 16686:16686
+      - 4317:4317
+      - 14268:14268
+    networks:
+      - go-api-hexa-sandbox

@@ -80,16 +80,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: ["~1.22.1"]
+        version: ["~1.24"]
     steps:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.version }}
       - uses: actions/checkout@v4
+      - name: get dependencies
+        run: go mod tidy && go mod vendor
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.58
+          version: v1.64
+          args: --timeout=10m
       - name: run tests with coverage
         run: go test -coverprofile=coverage.txt -covermode=atomic ./...
       - name: Upload coverage to Codecov
@@ -106,7 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: ["~1.22.1"]
+        version: ["~1.24"]
     steps:
       - uses: actions/setup-go@v5
         with:
