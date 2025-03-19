@@ -1,6 +1,6 @@
 module github.com/rubemlrm/go-api-bootstrap
 
-go 1.24
+go 1.24.1
 
 require (
 	github.com/getkin/kin-openapi v0.130.0
