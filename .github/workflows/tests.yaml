@@ -92,6 +92,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.64
+        args: --timeout=10m
       - name: run tests with coverage
         run: go test -coverprofile=coverage.txt -covermode=atomic ./...
       - name: Upload coverage to Codecov
