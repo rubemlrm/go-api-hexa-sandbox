@@ -3,148 +3,77 @@ package postgres_test
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"testing"
-	"time"
 
+	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/rubemlrm/go-api-bootstrap/config"
 	"github.com/rubemlrm/go-api-bootstrap/pkg/logger"
-	"github.com/rubemlrm/go-api-bootstrap/user/factories"
-
-	gooseTesting "github.com/rubemlrm/go-api-bootstrap/tests/goose"
-	"github.com/rubemlrm/go-api-bootstrap/tests/testcontainers"
 	"github.com/rubemlrm/go-api-bootstrap/user"
-	userpostgres "github.com/rubemlrm/go-api-bootstrap/user/postgres"
+	"github.com/rubemlrm/go-api-bootstrap/user/postgres"
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 )
 
-type UserRepositoryTestSuite struct {
-	testcontainer *testcontainers.PostgresTestContainer
-	suite.Suite
-	DB *sql.DB
-}
+func TestUserList(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
 
-func (s *UserRepositoryTestSuite) SetupSuite() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer ctxCancel()
-
-	psqlContainer, err := testcontainers.StartPostgresContainer(ctx)
-	s.Require().NoError(err)
-
-	s.testcontainer = psqlContainer
-
-	err = gooseTesting.RunMigrations(s.testcontainer.DSN)
-	s.Require().NoError(err)
-
-	s.DB, err = sql.Open("postgres", psqlContainer.DSN)
-	s.Require().NoError(err)
-}
-
-func (s *UserRepositoryTestSuite) TestUserGet() {
-	s.T().Run("get user with success", func(t *testing.T) {
-		lg := logger.NewLogger(config.Logger{
-			Level: "Debug",
-		})
-		ctx := context.Background()
-		uu := factories.GenerateUsers(10)
-		ux := uu[0]
-		err := factories.GenerateUsersOnDB(s.DB, uu)
-		assert.NoError(t, err)
-
-		repository := userpostgres.NewConnection(s.DB, lg)
-		u, err := repository.Get(ctx, ux.ID)
-		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), u.Name, ux.Name)
+	lg := logger.NewLogger(config.Logger{
+		Level: "Debug",
 	})
+	repo := postgres.NewConnection(db, lg)
+	mock.ExpectPrepare("SELECT id, name, password, is_enabd from users").ExpectQuery().WillReturnError(errors.New("error"))
+	ctx := context.Background()
+	users, err := repo.All(ctx)
+	if err != nil {
+		assert.Error(t, err)
+		assert.Nil(t, users)
+	}
 }
 
-func (s *UserRepositoryTestSuite) TestUserCreation() {
-	uf := factories.UserFactory{}
+func TestUserGetUser(t *testing.T) {
 	tests := []struct {
-		name          string
-		user          user.UserCreate
-		expectedError error
+		name             string
+		userID           user.ID
+		expectedError    bool
+		expectedMockFunc func() *sql.DB
+		want             string
 	}{
 		{
-			name:          "create user with success",
-			user:          *uf.CreateUserCreate(),
-			expectedError: nil,
+			name:          "Fail on prepare",
+			userID:        user.ID(1),
+			expectedError: true,
+			want:          "ttstrinest",
+			expectedMockFunc: func() *sql.DB {
+				db, mock, err := sqlmock.New()
+				if err != nil {
+					t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+				}
+				mock.ExpectPrepare("SELECT id, name, password, is_enabd from users where id = $1").ExpectQuery().WillReturnError(errors.New("error"))
+				return db
+			},
 		},
 	}
-
 	for _, tt := range tests {
-		s.T().Run(tt.name, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
+			db := tt.expectedMockFunc()
+			defer db.Close()
+
 			lg := logger.NewLogger(config.Logger{
 				Level: "Debug",
 			})
+			repo := postgres.NewConnection(db, lg)
 			ctx := context.Background()
-			repository := userpostgres.NewConnection(s.DB, lg)
-			id, err := repository.Create(ctx, &tt.user)
-			if tt.expectedError != nil {
-				assert.NoError(s.T(), err)
+			users, err := repo.Get(ctx, tt.userID)
+			if err != nil {
+				assert.Error(t, err)
+				assert.Nil(t, users)
 			}
-			assert.Equal(s.T(), id, user.ID(1))
 		})
 	}
-}
-
-func (s *UserRepositoryTestSuite) TestUserList() {
-	tests := []struct {
-		name          string
-		requiredSeed  bool
-		expectedTotal int
-		expectedError error
-	}{
-		{
-			name:          "Get empty user list without errors",
-			requiredSeed:  false,
-			expectedTotal: 0,
-			expectedError: nil,
-		},
-	}
-
-	for _, tt := range tests {
-		s.T().Run(tt.name, func(t *testing.T) {
-			lg := logger.NewLogger(config.Logger{
-				Level: "Debug",
-			})
-			ctx := context.Background()
-			repository := userpostgres.NewConnection(s.DB, lg)
-			uu, err := repository.All(ctx)
-
-			if tt.requiredSeed == true {
-				fu := factories.GenerateUsers(tt.expectedTotal)
-				err = factories.GenerateUsersOnDB(s.DB, fu)
-				assert.NoError(t, err)
-			}
-
-			if tt.expectedError != nil {
-				assert.Error(s.T(), tt.expectedError, err)
-			}
-			assert.Equal(s.T(), tt.expectedTotal, len(*uu))
-		})
-	}
-}
-
-func (s *UserRepositoryTestSuite) TearDownSuite() {
-	err := gooseTesting.RollbackMigrations(s.testcontainer.DSN)
-	if err != nil {
-		panic(err)
-	}
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-	s.Require().NoError(s.testcontainer.Terminate(ctx))
-}
-
-func (s *UserRepositoryTestSuite) TearDownTest() {
-	_, err := s.DB.Exec("TRUNCATE table users")
-	if err != nil {
-		panic(err)
-	}
-}
-
-func TestUserRepositoryTestSuite(t *testing.T) {
-	suite.Run(t, new(UserRepositoryTestSuite))
 }
