@@ -62,7 +62,7 @@ func (s *UserRepositoryTestSuite) TestUserCreation() {
 			name:             "Simulate error on user creation",
 			expectedError:    true,
 			user:             *uf.CreateUserCreate(),
-			connectionString: s.generateWrongSqlConnection(),
+			connectionString: s.generateWrongSQLConnection(),
 		},
 	}
 
@@ -135,26 +135,26 @@ func (s *UserRepositoryTestSuite) TestUserGet() {
 		requiredSeed  bool
 		expectedError bool
 		wantError     error
-		fakeUserId    bool
+		fakeUserID    bool
 	}{
 		{
 			name:          "Get user with success",
 			requiredSeed:  true,
 			expectedError: false,
-			fakeUserId:    false,
+			fakeUserID:    false,
 		},
 		{
 			name:          "User not found",
 			requiredSeed:  true,
 			expectedError: true,
 			wantError:     fmt.Errorf("not found result"),
-			fakeUserId:    true,
+			fakeUserID:    true,
 		},
 	}
 
 	for _, tt := range tests {
 		s.T().Run(tt.name, func(t *testing.T) {
-			userId := user.ID(9999)
+			userID := user.ID(9999)
 			lg := logger.NewLogger(config.Logger{
 				Level: "Debug",
 			})
@@ -166,12 +166,12 @@ func (s *UserRepositoryTestSuite) TestUserGet() {
 				err := factories.GenerateUsersOnDB(s.DB, fu)
 				assert.NoError(t, err)
 				uu = fu
-				if !tt.fakeUserId {
-					userId = uu[0].ID
+				if !tt.fakeUserID {
+					userID = uu[0].ID
 				}
 			}
 
-			u, err := repository.Get(ctx, userId)
+			u, err := repository.Get(ctx, userID)
 
 			if tt.expectedError {
 				assert.Error(s.T(), tt.wantError, err)
@@ -200,7 +200,7 @@ func (s *UserRepositoryTestSuite) TearDownTest() {
 	}
 }
 
-func (s *UserRepositoryTestSuite) generateWrongSqlConnection() *sql.DB {
+func (s *UserRepositoryTestSuite) generateWrongSQLConnection() *sql.DB {
 	db, _ := sql.Open("postgres", "wrong connection string")
 	return db
 }

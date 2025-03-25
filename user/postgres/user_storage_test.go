@@ -39,14 +39,14 @@ func TestUserList(t *testing.T) {
 func TestUserGetUser(t *testing.T) {
 	tests := []struct {
 		name             string
-		userId           user.ID
+		userID           user.ID
 		expectedError    bool
 		expectedMockFunc func() *sql.DB
 		want             string
 	}{
 		{
 			name:          "Fail on prepare",
-			userId:        user.ID(1),
+			userID:        user.ID(1),
 			expectedError: true,
 			want:          "ttstrinest",
 			expectedMockFunc: func() *sql.DB {
@@ -69,12 +69,11 @@ func TestUserGetUser(t *testing.T) {
 			})
 			repo := postgres.NewConnection(db, lg)
 			ctx := context.Background()
-			users, err := repo.Get(ctx, tt.userId)
+			users, err := repo.Get(ctx, tt.userID)
 			if err != nil {
 				assert.Error(t, err)
 				assert.Nil(t, users)
 			}
 		})
 	}
-
 }
