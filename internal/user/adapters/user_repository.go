@@ -4,43 +4,43 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/models"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 	"log/slog"
 
 	_ "github.com/lib/pq"
 )
 
-var _ models.Repository = (*PostgresDB)(nil)
+var _ user.Repository = (*UserRepository)(nil)
 
-type PostgresDB struct {
+type UserRepository struct {
 	db     *sql.DB
 	logger *slog.Logger
 }
 
-func NewConnection(db *sql.DB, logger *slog.Logger) *PostgresDB {
-	return &PostgresDB{
+func NewUserRepository(db *sql.DB, logger *slog.Logger) UserRepository {
+	return UserRepository{
 		db:     db,
 		logger: logger,
 	}
 }
 
-func (r *PostgresDB) Create(ctx context.Context, u *models.UserCreate) (models.ID, error) {
+func (r *UserRepository) Create(ctx context.Context, u *user.UserCreate) (user.ID, error) {
 	var id int
 	query := `INSERT into users (name, email, password) values($1,$2,$3) RETURNING id`
 	err := r.db.QueryRowContext(ctx, query, u.Name, u.Email, u.Password).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
-	return models.ID(id), nil
+	return user.ID(id), nil
 }
 
-func (r *PostgresDB) Get(ctx context.Context, id models.ID) (*models.User, error) {
+func (r *UserRepository) Get(ctx context.Context, id user.ID) (*user.User, error) {
 	stmt, err := r.db.Prepare(`SELECT id, name, password, is_enabled FROM users where id = $1`)
 	if err != nil {
 		return nil, err
 	}
 
-	var u models.User
+	var u user.User
 	rows, err := stmt.QueryContext(ctx, id)
 	if err != nil {
 		return nil, err
@@ -56,13 +56,13 @@ func (r *PostgresDB) Get(ctx context.Context, id models.ID) (*models.User, error
 	return &u, nil
 }
 
-func (r *PostgresDB) All(ctx context.Context) (*[]models.User, error) {
+func (r *UserRepository) All(ctx context.Context) (*[]user.User, error) {
 	stmt, err := r.db.Prepare(`SELECT id, name, password, is_enabled from users`)
 	if err != nil {
 		return nil, err
 	}
 
-	var uu []models.User
+	var uu []user.User
 	rows, err := stmt.QueryContext(ctx)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (r *PostgresDB) All(ctx context.Context) (*[]models.User, error) {
 	}(rows)
 
 	for rows.Next() {
-		var u models.User
+		var u user.User
 		err = rows.Scan(&u.ID, &u.Name, &u.Password, &u.IsEnabled)
 		if err != nil {
 			return nil, err

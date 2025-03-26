@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	userpostgres "github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters/factories"
-	user "github.com/rubemlrm/go-api-bootstrap/internal/user/models"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
+	factories2 "github.com/rubemlrm/go-api-bootstrap/internal/user/factories"
 	"testing"
 	"time"
 
@@ -42,7 +42,7 @@ func (s *UserRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *UserRepositoryTestSuite) TestUserCreation() {
-	uf := factories.UserFactory{}
+	uf := factories2.UserFactory{}
 	tests := []struct {
 		name             string
 		user             user.UserCreate
@@ -70,7 +70,7 @@ func (s *UserRepositoryTestSuite) TestUserCreation() {
 				Level: "Debug",
 			})
 			ctx := context.Background()
-			repository := userpostgres.NewConnection(tt.connectionString, lg)
+			repository := adapters.NewUserRepository(tt.connectionString, lg)
 			id, err := repository.Create(ctx, &tt.user)
 			if tt.expectedError {
 				assert.Error(s.T(), err)
@@ -109,11 +109,11 @@ func (s *UserRepositoryTestSuite) TestUserList() {
 				Level: "Debug",
 			})
 			ctx := context.Background()
-			repository := userpostgres.NewConnection(s.DB, lg)
+			repository := adapters.NewUserRepository(s.DB, lg)
 
 			if tt.requiredSeed == true {
-				fu := factories.GenerateUsers(tt.expectedTotal)
-				err := factories.GenerateUsersOnDB(s.DB, fu)
+				fu := factories2.GenerateUsers(tt.expectedTotal)
+				err := factories2.GenerateUsersOnDB(s.DB, fu)
 				assert.NoError(t, err)
 			}
 
@@ -157,11 +157,11 @@ func (s *UserRepositoryTestSuite) TestUserGet() {
 				Level: "Debug",
 			})
 			ctx := context.Background()
-			repository := userpostgres.NewConnection(s.DB, lg)
+			repository := adapters.NewUserRepository(s.DB, lg)
 			var uu []user.User
 			if tt.requiredSeed == true {
-				fu := factories.GenerateUsers(10)
-				err := factories.GenerateUsersOnDB(s.DB, fu)
+				fu := factories2.GenerateUsers(10)
+				err := factories2.GenerateUsersOnDB(s.DB, fu)
 				assert.NoError(t, err)
 				uu = fu
 				if !tt.fakeUserID {

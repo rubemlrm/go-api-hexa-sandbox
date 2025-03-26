@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/models"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 	"log/slog"
 	"net/http"
 	"time"
@@ -29,7 +30,7 @@ func NewHttpServer(application app.Application, l *slog.Logger) ServerInterface 
 }
 
 func (s HttpServer) AddUser(c *gin.Context) {
-	var uc *models.UserCreate
+	var uc *user.UserCreate
 
 	_, span := tracer.Start(c.Request.Context(), "AddUser")
 	defer span.End()
@@ -46,7 +47,7 @@ func (s HttpServer) AddUser(c *gin.Context) {
 		return
 	}
 
-	id, err := s.app.UserService.Create(c, uc)
+	id, err := s.app.Commands.CreateUser.Handle(c, uc)
 	if err != nil {
 		s.Logger.Error("user", "creation", "error", slog.Any("error", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -59,7 +60,7 @@ func (s HttpServer) AddUser(c *gin.Context) {
 func (s HttpServer) ListUsers(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	res, err := s.app.UserService.All(ctx)
+	res, err := s.app.Queries.GetUsers.Handle(ctx, query.UserSearchFilters{})
 	if err != nil {
 		s.Logger.Error("user", "list", "error", slog.Any("error", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -71,7 +72,7 @@ func (s HttpServer) ListUsers(c *gin.Context) {
 func (s HttpServer) GetUser(c *gin.Context, userID int) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	res, err := s.app.UserService.Get(ctx, models.ID(userID))
+	res, err := s.app.Queries.GetUser.Handle(ctx, query.UserSearch{ID: user.ID(userID)})
 	if err != nil {
 		s.Logger.Error("user", "get", "error", slog.Any("error", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

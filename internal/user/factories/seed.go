@@ -3,11 +3,11 @@ package factories
 import (
 	"database/sql"
 	"fmt"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/models"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 	"strings"
 )
 
-func GenerateUsersOnDB(db *sql.DB, users []models.User) error {
+func GenerateUsersOnDB(db *sql.DB, users []user.User) error {
 	baseSQL := `INSERT INTO users (id, name, email, password) VALUES `
 
 	var placeholders []string
@@ -23,9 +23,9 @@ func GenerateUsersOnDB(db *sql.DB, users []models.User) error {
 	return err
 }
 
-func GenerateUsers(total int) []models.User {
+func GenerateUsers(total int) []user.User {
 	uf := &UserFactory{}
-	var uu []models.User
+	var uu []user.User
 	for i := 1; i <= total; i++ {
 		uu = append(uu, *uf.CreateUser())
 	}

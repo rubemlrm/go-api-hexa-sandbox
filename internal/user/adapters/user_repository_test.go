@@ -5,13 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
-	user "github.com/rubemlrm/go-api-bootstrap/internal/user/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +25,7 @@ func TestUserList(t *testing.T) {
 	lg := logger.NewLogger(config.Logger{
 		Level: "Debug",
 	})
-	repo := adapters.NewConnection(db, lg)
+	repo := adapters.NewUserRepository(db, lg)
 	mock.ExpectPrepare("SELECT id, name, password, is_enabd from users").ExpectQuery().WillReturnError(errors.New("error"))
 	ctx := context.Background()
 	users, err := repo.All(ctx)
@@ -66,7 +66,7 @@ func TestUserGetUser(t *testing.T) {
 			lg := logger.NewLogger(config.Logger{
 				Level: "Debug",
 			})
-			repo := adapters.NewConnection(db, lg)
+			repo := adapters.NewUserRepository(db, lg)
 			ctx := context.Background()
 			users, err := repo.Get(ctx, tt.userID)
 			if err != nil {

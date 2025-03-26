@@ -11,3 +11,7 @@ packages:
   github.com/rubemlrm/go-api-bootstrap/internal/common/validations:
     config:
       all: true
+
+  github.com/rubemlrm/go-api-bootstrap/internal/common/decorator:
+      config:
+        all: true

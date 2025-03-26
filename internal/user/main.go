@@ -6,12 +6,10 @@ import (
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 	ginhandler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/postgres"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/tracing"
-	userpostgres "github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/models"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/ports"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/service"
 	"log"
 	"log/slog"
 )
@@ -37,7 +35,7 @@ func main() {
 	l := logger.NewLogger(cfg.Logger)
 
 	l.Info("app starting")
-	app := setNewApplication(context.Background(), l, cfg)
+	app := service.NewApplication(context.Background(), cfg, l)
 	err = startWeb(cfg.HTTP, l, app)
 
 	if err != nil {
@@ -64,15 +62,4 @@ func startWeb(httpConfig config.HTTP, logger *slog.Logger, app app.Application) 
 		return err
 	}
 	return nil
-}
-
-func setNewApplication(ctx context.Context, l *slog.Logger, cfg *config.Config) app.Application {
-
-	db := postgres.StartConnection(cfg, l)
-	repo := userpostgres.NewConnection(db, l)
-	sv := models.NewService(repo, l)
-
-	return app.Application{
-		UserService: sv,
-	}
 }

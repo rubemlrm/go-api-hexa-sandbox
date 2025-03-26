@@ -8,10 +8,13 @@ packages:
   github.com/rubemlrm/go-api-bootstrap/internal/user:
     config:
       all: true
-  github.com/rubemlrm/go-api-bootstrap/internal/user/models:
-      config:
-        all: true
-  github.com/rubemlrm/go-api-bootstrap/internal/user/domain:
+  github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user:
+        config:
+          all: true
+  github.com/rubemlrm/go-api-bootstrap/internal/user/app/query:
+        config:
+          all: true
+  github.com/rubemlrm/go-api-bootstrap/internal/user/app/command:
         config:
           all: true
 

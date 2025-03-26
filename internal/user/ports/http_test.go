@@ -4,7 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters/factories"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
+	command_mocks "github.com/rubemlrm/go-api-bootstrap/internal/user/app/command/mocks"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query/mocks"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/factories"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/ports"
 	"io"
 	"log/slog"
 	"net/http"
@@ -13,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	user "github.com/rubemlrm/go-api-bootstrap/internal/user/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -59,10 +64,17 @@ func TestGetUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserService := user_mocks.NewMockUseCase(t)
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-			s := handlers.NewServer(mockUserService, logger)
-			mockUserService.On("Get", mock.Anything, user.ID(tt.userID)).Return(tt.mockUser, tt.mockError)
+			mockHandler := query_mocks.NewMockGetUserHandler(t)
+			app := app.Application{
+				Queries: app.Queries{
+					GetUser: mockHandler,
+				},
+			}
+			s := ports.NewHttpServer(app, logger)
+			mockHandler.On("Handle", mock.Anything, query.UserSearch{
+				ID: user.ID(tt.userID),
+			}).Return(tt.mockUser, tt.mockError)
 			router := gin.Default()
 			router.GET("/api/v1/users/:id", func(c *gin.Context) {
 				id := c.Param("id")
@@ -80,7 +92,7 @@ func TestGetUser(t *testing.T) {
 			// Assertions
 			assert.Equal(t, tt.expectedStatus, w.Code)
 			assert.Equal(t, tt.expectedResponse, w.Body.String())
-			mockUserService.AssertExpectations(t)
+			mockHandler.AssertExpectations(t)
 		})
 	}
 }
@@ -124,10 +136,15 @@ func TestListUsers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserService := user_mocks.NewMockUseCase(t)
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-			s := handlers.NewServer(mockUserService, logger)
-			mockUserService.On("All", mock.Anything).Return(tt.mockResultUsers, tt.mockError)
+			mockHandler := query_mocks.NewMockListUsersHandler(t)
+			app := app.Application{
+				Queries: app.Queries{
+					GetUsers: mockHandler,
+				},
+			}
+			s := ports.NewHttpServer(app, logger)
+			mockHandler.On("Handle", mock.Anything, query.UserSearchFilters{}).Return(tt.mockResultUsers, tt.mockError)
 			router := gin.Default()
 			router.GET("/api/v1/users/", func(c *gin.Context) {
 				s.ListUsers(c)
@@ -142,7 +159,7 @@ func TestListUsers(t *testing.T) {
 
 			// Assertions
 			assert.Equal(t, tt.expectedStatus, w.Code)
-			mockUserService.AssertExpectations(t)
+			mockHandler.AssertExpectations(t)
 		})
 	}
 }
@@ -186,10 +203,15 @@ func TestAddUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserService := user_mocks.NewMockUseCase(t)
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-			s := handlers.NewServer(mockUserService, logger)
-			mockUserService.On("Create", mock.Anything, mock.Anything).Return(user.ID(tt.mockUserID), tt.mockError).Maybe()
+			mockHandler := command_mocks.NewMockCreateUserHandler(t)
+			app := app.Application{
+				Commands: app.Commands{
+					CreateUser: mockHandler,
+				},
+			}
+			s := ports.NewHttpServer(app, logger)
+			mockHandler.On("Handle", mock.Anything, mock.Anything).Return(user.ID(tt.mockUserID), tt.mockError).Maybe()
 			router := gin.Default()
 			router.POST("/api/v1/users/", s.AddUser)
 
@@ -208,7 +230,7 @@ func TestAddUser(t *testing.T) {
 			// Assertions
 			assert.Equal(t, tt.expectedStatus, w.Code)
 			assert.Equal(t, tt.expectedResponse, w.Body.String())
-			mockUserService.AssertExpectations(t)
+			mockHandler.AssertExpectations(t)
 		})
 	}
 }

@@ -2,15 +2,15 @@ package factories
 
 import (
 	"github.com/go-faker/faker/v4"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/models"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 	"golang.org/x/exp/rand"
 )
 
 type UserFactory struct{}
 
-func (s *UserFactory) CreateUser() *models.User {
-	return &models.User{
-		ID:        models.ID(rand.Int()),
+func (s *UserFactory) CreateUser() *user.User {
+	return &user.User{
+		ID:        user.ID(rand.Int()),
 		Name:      faker.Name(),
 		Email:     faker.Email(),
 		Password:  faker.Password(),
@@ -18,16 +18,16 @@ func (s *UserFactory) CreateUser() *models.User {
 	}
 }
 
-func (s *UserFactory) CreateUserCreate() *models.UserCreate {
-	return &models.UserCreate{
+func (s *UserFactory) CreateUserCreate() *user.UserCreate {
+	return &user.UserCreate{
 		Name:     faker.Name(),
 		Email:    faker.Email(),
 		Password: faker.Password(),
 	}
 }
 
-func (s *UserFactory) CreateInvalidUserCreate() *models.UserCreate {
-	return &models.UserCreate{
+func (s *UserFactory) CreateInvalidUserCreate() *user.UserCreate {
+	return &user.UserCreate{
 		Name:  faker.Name(),
 		Email: faker.Password(),
 	}

@@ -1,13 +1,12 @@
-package models_test
+package user
 
 import (
 	"errors"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters/factories"
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/factories"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
-
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
-	"github.com/stretchr/testify/assert"
 )
 
 func mockValidationFuncError(_ string, _ ...validations.Option) (*validations.Validator, error) {
