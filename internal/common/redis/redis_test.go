@@ -19,8 +19,8 @@ func TestRedisClient(t *testing.T) {
 	assert.NoError(t, err)
 
 	cl, err := redis.New()
-	assert.Error(t, err)
-	assert.Nil(t, cl)
+	assert.NoError(t, err)
+	assert.NotNil(t, cl)
 }
 
 func TestRedisClientAddress(t *testing.T) {

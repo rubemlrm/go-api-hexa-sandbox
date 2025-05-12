@@ -2,16 +2,16 @@ package user
 
 import "context"
 
-type Reader interface {
+type UserReader interface {
 	Get(ctx context.Context, id ID) (*User, error)
 	All(ctx context.Context) (*[]User, error)
 }
 
-type Writer interface {
+type UserWriter interface {
 	Create(ctx context.Context, u *UserCreate) (ID, error)
 }
 
-type Repository interface {
-	Reader
-	Writer
+type UserRepository interface {
+	UserReader
+	UserWriter
 }

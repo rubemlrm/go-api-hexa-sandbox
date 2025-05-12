@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
+	"log"
+	"log/slog"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/api"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 	ginhandler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/postgres"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/tracing"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/ports"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/service"
-	"log"
-	"log/slog"
 )
 
 func main() {
@@ -35,7 +37,10 @@ func main() {
 	l := logger.NewLogger(cfg.Logger)
 
 	l.Info("app starting")
-	app := service.NewApplication(context.Background(), cfg, l)
+
+	db := postgres.StartConnection(cfg, l)
+
+	app := service.NewApplication(context.Background(), cfg, l, db)
 	err = startWeb(cfg.HTTP, l, app)
 
 	if err != nil {

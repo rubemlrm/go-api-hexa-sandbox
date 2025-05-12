@@ -1,10 +1,11 @@
 package gin_test
 
 import (
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
@@ -19,7 +20,7 @@ func TestSetHandlers(t *testing.T) {
 			Handler: "textHandler",
 		})
 
-	engine.SetHandlers(logger)
+	engine.SetHandlers(logger, func() {})
 
 	// Test /swagger-ui route
 	req, _ := http.NewRequest("GET", "/swagger-ui", nil)

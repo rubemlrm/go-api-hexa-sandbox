@@ -2,22 +2,19 @@ package command
 
 import (
 	"context"
-	"database/sql"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/decorator"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
-	"log/slog"
 )
 
 type CreateUserHandler decorator.CommandHandler[*user.UserCreate, user.ID]
 
 type UserCreateStore struct {
-	userRepository adapters.UserRepository
+	userRepository user.UserRepository
 }
 
-func NewCreateUserHandler(db *sql.DB, logger *slog.Logger) decorator.CommandHandler[*user.UserCreate, user.ID] {
+func NewCreateUserHandler(repository user.UserRepository) decorator.CommandHandler[*user.UserCreate, user.ID] {
 	return UserCreateStore{
-		userRepository: adapters.NewUserRepository(db, logger),
+		userRepository: repository,
 	}
 }
 

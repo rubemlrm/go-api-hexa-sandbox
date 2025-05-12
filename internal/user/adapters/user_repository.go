@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 	"log/slog"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 
 	_ "github.com/lib/pq"
 )
 
-var _ user.Repository = (*UserRepository)(nil)
+var _ user.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
 	db     *sql.DB
@@ -24,17 +25,17 @@ func NewUserRepository(db *sql.DB, logger *slog.Logger) UserRepository {
 	}
 }
 
-func (r *UserRepository) Create(ctx context.Context, u *user.UserCreate) (user.ID, error) {
+func (r UserRepository) Create(ctx context.Context, u *user.UserCreate) (user.ID, error) {
 	var id int
 	query := `INSERT into users (name, email, password) values($1,$2,$3) RETURNING id`
-	err := r.db.QueryRowContext(ctx, query, u.Name, u.Email, u.Password).Scan(&id)
+	err := r.db.QueryRow(query, u.Name, u.Email, u.Password).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
 	return user.ID(id), nil
 }
 
-func (r *UserRepository) Get(ctx context.Context, id user.ID) (*user.User, error) {
+func (r UserRepository) Get(ctx context.Context, id user.ID) (*user.User, error) {
 	stmt, err := r.db.Prepare(`SELECT id, name, password, is_enabled FROM users where id = $1`)
 	if err != nil {
 		return nil, err
@@ -56,7 +57,7 @@ func (r *UserRepository) Get(ctx context.Context, id user.ID) (*user.User, error
 	return &u, nil
 }
 
-func (r *UserRepository) All(ctx context.Context) (*[]user.User, error) {
+func (r UserRepository) All(ctx context.Context) (*[]user.User, error) {
 	stmt, err := r.db.Prepare(`SELECT id, name, password, is_enabled from users`)
 	if err != nil {
 		return nil, err

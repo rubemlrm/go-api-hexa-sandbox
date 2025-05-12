@@ -11,7 +11,7 @@ import (
 
 func init() {
 	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Join(path.Dir(filename), "./stubs")
+	dir := path.Join(path.Dir(filename), "./stubs/config")
 	err := os.Chdir(dir)
 	if err != nil {
 		panic(err)

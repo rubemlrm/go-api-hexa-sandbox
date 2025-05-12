@@ -2,24 +2,24 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"log/slog"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/postgres"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/command"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
-	"log/slog"
 )
 
-func NewApplication(ctx context.Context, cfg *config.Config, l *slog.Logger) app.Application {
-	return newApplication(ctx, cfg, l)
+func NewApplication(ctx context.Context, cfg *config.Config, l *slog.Logger, db *sql.DB) app.Application {
+	return newApplication(ctx, cfg, l, db)
 }
 
-func newApplication(_ context.Context, cfg *config.Config, l *slog.Logger) app.Application {
-	db := postgres.StartConnection(cfg, l)
-
+func newApplication(_ context.Context, cfg *config.Config, l *slog.Logger, db *sql.DB) app.Application {
 	return app.Application{
 		Commands: app.Commands{
-			CreateUser: command.NewCreateUserHandler(db, l),
+			CreateUser: command.NewCreateUserHandler(adapters.NewUserRepository(db, l)),
 		},
 		Queries: app.Queries{
 			GetUser:  query.NewGetUserHandler(db, l),

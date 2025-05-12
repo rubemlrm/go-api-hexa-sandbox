@@ -1,12 +1,14 @@
-package user
+package user_test
 
 import (
 	"errors"
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/factories"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/factories"
+	"github.com/stretchr/testify/assert"
 )
 
 func mockValidationFuncError(_ string, _ ...validations.Option) (*validations.Validator, error) {
@@ -14,7 +16,7 @@ func mockValidationFuncError(_ string, _ ...validations.Option) (*validations.Va
 }
 
 func TestUserEnabled(t *testing.T) {
-	u := User{
+	u := user.User{
 		Name:      "testing",
 		Email:     "teste@teste.com",
 		Password:  "ChangeMe",
@@ -31,13 +33,13 @@ func TestUserValidate(t *testing.T) {
 	uf := factories.UserFactory{}
 	tests := []struct {
 		name           string
-		user           *UserCreate
+		user           *user.UserCreate
 		validationFunc validations.ValidationFunc
 		expectedErr    error
 	}{
 		{
 			name:           "fail validation initialization error",
-			user:           &UserCreate{},
+			user:           &user.UserCreate{},
 			validationFunc: mockValidationFuncError,
 			expectedErr:    errors.New("validation initialization error"),
 		},
