@@ -23,8 +23,9 @@ func StartRedisContainer(ctx context.Context) (*RedisTestContainer, error) {
 		},
 		ExposedPorts: []string{"6379/tcp"},
 		Image:        "bitnami/redis:latest",
-		WaitingFor: wait.ForLog(".*Ready to accept connections").
-			WithPollInterval(2 * time.Second).AsRegexp(),
+		WaitingFor: wait.ForExec([]string{"redis-cli", "ping"}).
+			WithPollInterval(500 * time.Millisecond).
+			WithStartupTimeout(15 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
