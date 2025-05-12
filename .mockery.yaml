@@ -26,4 +26,3 @@ packages:
   github.com/rubemlrm/go-api-bootstrap/internal/user/app/command:
     config:
       all: true
-
