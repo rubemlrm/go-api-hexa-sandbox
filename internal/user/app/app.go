@@ -1,9 +1,10 @@
 package app
 
 import (
+	"log/slog"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/command"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
-	"log/slog"
 )
 
 type Application struct {

@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/decorator"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 )

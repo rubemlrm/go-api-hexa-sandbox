@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"testing"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
-	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"

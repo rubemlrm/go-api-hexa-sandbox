@@ -2,9 +2,10 @@ package user
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
-	"time"
 )
 
 type User struct {

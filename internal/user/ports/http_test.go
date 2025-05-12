@@ -4,19 +4,20 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
-	command_mocks "github.com/rubemlrm/go-api-bootstrap/internal/user/app/command/mocks"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query/mocks"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/factories"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/ports"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
+	command_mocks "github.com/rubemlrm/go-api-bootstrap/internal/user/app/command/mocks"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
+	query_mocks "github.com/rubemlrm/go-api-bootstrap/internal/user/app/query/mocks"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/factories"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/ports"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -71,7 +72,7 @@ func TestGetUser(t *testing.T) {
 					GetUser: mockHandler,
 				},
 			}
-			s := ports.NewHttpServer(app, logger)
+			s := ports.NewHTTPServer(app, logger)
 			mockHandler.On("Handle", mock.Anything, query.UserSearch{
 				ID: user.ID(tt.userID),
 			}).Return(tt.mockUser, tt.mockError)
@@ -143,7 +144,7 @@ func TestListUsers(t *testing.T) {
 					GetUsers: mockHandler,
 				},
 			}
-			s := ports.NewHttpServer(app, logger)
+			s := ports.NewHTTPServer(app, logger)
 			mockHandler.On("Handle", mock.Anything, query.UserSearchFilters{}).Return(tt.mockResultUsers, tt.mockError)
 			router := gin.Default()
 			router.GET("/api/v1/users/", func(c *gin.Context) {
@@ -210,7 +211,7 @@ func TestAddUser(t *testing.T) {
 					CreateUser: mockHandler,
 				},
 			}
-			s := ports.NewHttpServer(app, logger)
+			s := ports.NewHTTPServer(app, logger)
 			mockHandler.On("Handle", mock.Anything, mock.Anything).Return(user.ID(tt.mockUserID), tt.mockError).Maybe()
 			router := gin.Default()
 			router.POST("/api/v1/users/", s.AddUser)

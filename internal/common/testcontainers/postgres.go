@@ -3,8 +3,9 @@ package testcontainers
 import (
 	"context"
 	"fmt"
-	"github.com/testcontainers/testcontainers-go"
 	"time"
+
+	"github.com/testcontainers/testcontainers-go"
 
 	"github.com/testcontainers/testcontainers-go/wait"
 )

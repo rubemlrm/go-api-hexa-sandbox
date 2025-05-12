@@ -1,12 +1,13 @@
 package api_test
 
 import (
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/api"
 	"net/http"
 	"os"
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/api"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 

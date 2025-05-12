@@ -3,8 +3,9 @@ package factories
 import (
 	"database/sql"
 	"fmt"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 	"strings"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 )
 
 func GenerateUsersOnDB(db *sql.DB, users []user.User) error {

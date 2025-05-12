@@ -3,7 +3,6 @@ package command_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"

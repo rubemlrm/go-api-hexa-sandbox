@@ -3,10 +3,11 @@ package query
 import (
 	"context"
 	"database/sql"
+	"log/slog"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/decorator"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
-	"log/slog"
 )
 
 type ListUsersHandler decorator.QueryHandler[UserSearchFilters, *[]user.User]

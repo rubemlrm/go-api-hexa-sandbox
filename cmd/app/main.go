@@ -13,7 +13,7 @@ import (
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/tracing"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/ports"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/service"
+	user_service "github.com/rubemlrm/go-api-bootstrap/internal/user/service"
 )
 
 func main() {
@@ -40,7 +40,7 @@ func main() {
 
 	db := postgres.StartConnection(cfg, l)
 
-	app := service.NewApplication(context.Background(), cfg, l, db)
+	app := user_service.NewApplication(context.Background(), cfg, l, db)
 	err = startWeb(cfg.HTTP, l, app)
 
 	if err != nil {
@@ -54,7 +54,7 @@ func startWeb(httpConfig config.HTTP, logger *slog.Logger, app app.Application) 
 		opt := ports.GinServerOptions{
 			BaseURL: "/api/v1",
 		}
-		ports.RegisterHandlersWithOptions(ne.Engine, ports.NewHttpServer(app, logger), opt)
+		ports.RegisterHandlersWithOptions(ne.Engine, ports.NewHTTPServer(app, logger), opt)
 	})
 	srv, err := api.NewServer(ne.StartHTTP(), httpConfig, logger)
 

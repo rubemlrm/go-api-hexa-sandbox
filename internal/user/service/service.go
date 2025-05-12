@@ -16,7 +16,7 @@ func NewApplication(ctx context.Context, cfg *config.Config, l *slog.Logger, db 
 	return newApplication(ctx, cfg, l, db)
 }
 
-func newApplication(_ context.Context, cfg *config.Config, l *slog.Logger, db *sql.DB) app.Application {
+func newApplication(_ context.Context, _ *config.Config, l *slog.Logger, db *sql.DB) app.Application {
 	return app.Application{
 		Commands: app.Commands{
 			CreateUser: command.NewCreateUserHandler(adapters.NewUserRepository(db, l)),

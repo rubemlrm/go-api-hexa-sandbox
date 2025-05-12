@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 	factories2 "github.com/rubemlrm/go-api-bootstrap/internal/user/factories"
-	"testing"
-	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"

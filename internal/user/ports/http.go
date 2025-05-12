@@ -3,12 +3,13 @@ package ports
 import (
 	"context"
 	"fmt"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 
 	"go.opentelemetry.io/otel"
 
@@ -17,19 +18,19 @@ import (
 
 var tracer = otel.Tracer("gin-server")
 
-type HttpServer struct {
+type HTTPServer struct {
 	app    app.Application
 	Logger *slog.Logger
 }
 
-func NewHttpServer(application app.Application, l *slog.Logger) ServerInterface {
-	return HttpServer{
+func NewHTTPServer(application app.Application, l *slog.Logger) ServerInterface {
+	return HTTPServer{
 		app:    application,
 		Logger: l,
 	}
 }
 
-func (s HttpServer) AddUser(c *gin.Context) {
+func (s HTTPServer) AddUser(c *gin.Context) {
 	var uc *user.UserCreate
 
 	_, span := tracer.Start(c.Request.Context(), "AddUser")
@@ -57,7 +58,7 @@ func (s HttpServer) AddUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"id": id})
 }
 
-func (s HttpServer) ListUsers(c *gin.Context) {
+func (s HTTPServer) ListUsers(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	res, err := s.app.Queries.GetUsers.Handle(ctx, query.UserSearchFilters{})
@@ -69,7 +70,7 @@ func (s HttpServer) ListUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": res})
 }
 
-func (s HttpServer) GetUser(c *gin.Context, userID int) {
+func (s HTTPServer) GetUser(c *gin.Context, userID int) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	res, err := s.app.Queries.GetUser.Handle(ctx, query.UserSearch{ID: user.ID(userID)})
