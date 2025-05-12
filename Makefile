@@ -18,7 +18,7 @@ start:
 	go run $(SOURCE_MAIN)
 
 install-dependencies:
-	go install github.com/oapi-codegen/oapi-codegen/v2
+	go get -tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 	go install github.com/pressly/goose/v3/cmd/goose@latest
 
 
@@ -27,7 +27,8 @@ mod-download:
 	go mod download
 
 generate: install-dependencies mod-download
-	go generate ./... && oapi-codegen --config oapi-config.yaml ./spec/openapi.yaml
+	oapi-codegen -generate types -o internal/user/ports/openapi_types.gen.go -package ports spec/user.yaml
+	oapi-codegen -generate gin-server -o internal/user/ports/openapi_api.gen.go -package ports spec/user.yaml
 
 generate-mocks:
 	@mockery --output user/mocks --dir user --all

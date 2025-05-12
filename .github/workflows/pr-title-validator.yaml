@@ -7,9 +7,7 @@ on:
       - opened
       - edited
       - synchronize
-  permissions:
-    pull-requests: write
-    statuses: write
+
 jobs:
   main:
     name: Validate PR title
