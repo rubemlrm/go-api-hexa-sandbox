@@ -15,10 +15,10 @@ func TestRedisClient(t *testing.T) {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer ctxCancel()
 
-	_, err := testcontainers.StartRedisContainer(ctx)
+	container, err := testcontainers.StartRedisContainer(ctx)
 	assert.NoError(t, err)
 
-	cl, err := redis.New()
+	cl, err := redis.New(redis.WithAddr(container.DSN))
 	assert.NoError(t, err)
 	assert.NotNil(t, cl)
 }
