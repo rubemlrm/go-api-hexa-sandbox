@@ -15,7 +15,6 @@ type SlogWrapper struct {
 type LoggerOption func(*SlogWrapper)
 
 func NewLogger(options ...LoggerOption) *SlogWrapper {
-
 	// Default logger configuration
 	l := &SlogWrapper{
 		level:  slog.LevelInfo,
@@ -50,7 +49,6 @@ func WithLogLevel(ht string) LoggerOption {
 		}
 		l.level = slog.LevelInfo
 	}
-
 }
 
 func WithLogFormat(format string) LoggerOption {

@@ -114,5 +114,4 @@ func (d *PostgresWrapper) generateConnectionString() string {
 		return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", d.username, d.password, d.host, d.port, d.schema, d.sslmode)
 	}
 	return fmt.Sprintf("postgres://%s:%s/%s?sslmode=%s", d.host, d.port, d.schema, d.sslmode)
-
 }

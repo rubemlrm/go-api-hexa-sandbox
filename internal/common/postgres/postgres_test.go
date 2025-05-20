@@ -28,7 +28,7 @@ func TestNewConnectionWithAuth(t *testing.T) {
 		accessData   accessData
 	}{
 		{
-			name:         "Start new connection with auth and sucess",
+			name:         "Start new connection with auth and success",
 			requiresAuth: true,
 			expectsError: false,
 			accessData: accessData{
@@ -87,7 +87,6 @@ func TestNewConnectionWithAuth(t *testing.T) {
 			ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer ctxCancel()
 			container.Terminate(ctx)
-
 		})
 	}
 }
