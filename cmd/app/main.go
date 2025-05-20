@@ -38,14 +38,16 @@ func main() {
 
 	l.Info("app starting")
 
-	db := postgres.NewConnection(
+	db, err := postgres.NewConnection(
 		l.Logger,
 		postgres.WithUsername(cfg.Database.User),
 		postgres.WithPassword(cfg.Database.Password),
 		postgres.WithHost(cfg.Database.Host),
 		postgres.WithPort(cfg.Database.Port),
 		postgres.WithSchema(cfg.Database.Schema))
-
+	if err != nil {
+		panic(err)
+	}
 	app := user_service.NewApplication(context.Background(), cfg, l.Logger, db)
 	err = startWeb(cfg.HTTP, l.Logger, app)
 
