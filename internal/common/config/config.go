@@ -31,6 +31,7 @@ type (
 		Password string `env-required:"true" mapstructure:"password"    env:"DATABASE_PASSWORD"`
 		Port     string `env-required:"true" mapstructure:"port"    env:"DATABASE_PORT"`
 		Host     string `env-required:"true" mapstructure:"host"    env:"DATABASE_HOST"`
+		SSLMode  string `env-required:"true" mapstructure:"sslmode"    env:"DATABASE_SSLMODE"`
 	}
 
 	Logger struct {

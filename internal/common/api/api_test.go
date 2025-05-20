@@ -21,16 +21,15 @@ type mockHandler struct{}
 func (m mockHandler) ServeHTTP(http.ResponseWriter, *http.Request) {}
 
 func TestStart(t *testing.T) {
-	l := logger.NewLogger(config.Logger{
-		Level: "Debug",
-	})
+	l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
+
 	t.Run("testing wrong port", func(t *testing.T) {
 		httpConfigs := config.HTTP{
 			Address:      "99999999999",
 			ReadTimeout:  "1",
 			WriteTimeout: "1",
 		}
-		srv, err := api.NewServer(mockHandler{}, httpConfigs, l)
+		srv, err := api.NewServer(mockHandler{}, httpConfigs, l.Logger)
 		assert.Nil(t, err)
 		go func(error) {
 			time.Sleep(1 * time.Second)
@@ -50,7 +49,7 @@ func TestStart(t *testing.T) {
 			ReadTimeout:  "zxc",
 			WriteTimeout: "zxv",
 		}
-		server, err := api.NewServer(mockHandler{}, httpConfigs, l)
+		server, err := api.NewServer(mockHandler{}, httpConfigs, l.Logger)
 		assert.IsType(t, server, &api.Server{Server: (*http.Server)(nil)})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "error validating configuration: ReadTimeout")
@@ -63,7 +62,7 @@ func TestStart(t *testing.T) {
 			ReadTimeout:  "123",
 			WriteTimeout: "zxv",
 		}
-		server, err := api.NewServer(mockHandler{}, httpConfigs, l)
+		server, err := api.NewServer(mockHandler{}, httpConfigs, l.Logger)
 		assert.IsType(t, server, &api.Server{Server: (*http.Server)(nil)})
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "error validating configuration: WriteTimeout")
@@ -76,7 +75,7 @@ func TestStart(t *testing.T) {
 			ReadTimeout:  "1",
 			WriteTimeout: "1",
 		}
-		srv, err := api.NewServer(mockHandler{}, httpConfigs, l)
+		srv, err := api.NewServer(mockHandler{}, httpConfigs, l.Logger)
 		assert.NoError(t, err)
 
 		go func() {

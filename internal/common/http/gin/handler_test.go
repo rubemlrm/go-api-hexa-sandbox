@@ -7,20 +7,15 @@ import (
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSetHandlers(t *testing.T) {
 	engine := gin.NewEngine()
-	logger := logger.NewLogger(
-		config.Logger{
-			Level:   "Debug",
-			Handler: "textHandler",
-		})
+	l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
 
-	engine.SetHandlers(logger, func() {})
+	engine.SetHandlers(l.Logger, func() {})
 
 	// Test /swagger-ui route
 	req, _ := http.NewRequest("GET", "/swagger-ui", nil)

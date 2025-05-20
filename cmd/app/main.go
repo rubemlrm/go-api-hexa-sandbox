@@ -34,14 +34,20 @@ func main() {
 
 	//metrics.InitMeter()
 
-	l := logger.NewLogger(cfg.Logger)
+	l := logger.NewLogger(logger.WithLogFormat(cfg.Logger.Handler), logger.WithLogLevel(cfg.Logger.Level))
 
 	l.Info("app starting")
 
-	db := postgres.StartConnection(cfg, l)
+	db := postgres.NewConnection(
+		l.Logger,
+		postgres.WithUsername(cfg.Database.User),
+		postgres.WithPassword(cfg.Database.Password),
+		postgres.WithHost(cfg.Database.Host),
+		postgres.WithPort(cfg.Database.Port),
+		postgres.WithSchema(cfg.Database.Schema))
 
-	app := user_service.NewApplication(context.Background(), cfg, l, db)
-	err = startWeb(cfg.HTTP, l, app)
+	app := user_service.NewApplication(context.Background(), cfg, l.Logger, db)
+	err = startWeb(cfg.HTTP, l.Logger, app)
 
 	if err != nil {
 		panic(err)

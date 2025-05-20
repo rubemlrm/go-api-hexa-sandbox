@@ -11,7 +11,6 @@ import (
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,10 +22,9 @@ func TestUserList(t *testing.T) {
 	}
 	defer db.Close()
 
-	lg := logger.NewLogger(config.Logger{
-		Level: "Debug",
-	})
-	repo := adapters.NewUserRepository(db, lg)
+	l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
+
+	repo := adapters.NewUserRepository(db, l.Logger)
 	mock.ExpectPrepare("SELECT id, name, password, is_enabd from users").ExpectQuery().WillReturnError(errors.New("error"))
 	ctx := context.Background()
 	users, err := repo.All(ctx)
@@ -64,10 +62,9 @@ func TestUserGetUser(t *testing.T) {
 			db := tt.expectedMockFunc()
 			defer db.Close()
 
-			lg := logger.NewLogger(config.Logger{
-				Level: "Debug",
-			})
-			repo := adapters.NewUserRepository(db, lg)
+			l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
+
+			repo := adapters.NewUserRepository(db, l.Logger)
 			ctx := context.Background()
 			users, err := repo.Get(ctx, tt.userID)
 			if err != nil {

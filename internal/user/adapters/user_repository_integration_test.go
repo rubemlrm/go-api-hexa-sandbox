@@ -12,7 +12,6 @@ import (
 	factories2 "github.com/rubemlrm/go-api-bootstrap/internal/user/factories"
 
 	_ "github.com/lib/pq"
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 	gooseTesting "github.com/rubemlrm/go-api-bootstrap/internal/common/goose"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/testcontainers"
@@ -67,11 +66,10 @@ func (s *UserRepositoryTestSuite) TestUserCreation() {
 
 	for _, tt := range tests {
 		s.T().Run(tt.name, func(t *testing.T) {
-			lg := logger.NewLogger(config.Logger{
-				Level: "Debug",
-			})
+			l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
+
 			ctx := context.Background()
-			repository := adapters.NewUserRepository(tt.connectionString, lg)
+			repository := adapters.NewUserRepository(tt.connectionString, l.Logger)
 			id, err := repository.Create(ctx, &tt.user)
 			if tt.expectedError {
 				assert.Error(s.T(), err)
@@ -106,11 +104,10 @@ func (s *UserRepositoryTestSuite) TestUserList() {
 
 	for _, tt := range tests {
 		s.T().Run(tt.name, func(t *testing.T) {
-			lg := logger.NewLogger(config.Logger{
-				Level: "Debug",
-			})
+			l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
+
 			ctx := context.Background()
-			repository := adapters.NewUserRepository(s.DB, lg)
+			repository := adapters.NewUserRepository(s.DB, l.Logger)
 
 			if tt.requiredSeed == true {
 				fu := factories2.GenerateUsers(tt.expectedTotal)
@@ -154,11 +151,10 @@ func (s *UserRepositoryTestSuite) TestUserGet() {
 	for _, tt := range tests {
 		s.T().Run(tt.name, func(t *testing.T) {
 			userID := user.ID(9999)
-			lg := logger.NewLogger(config.Logger{
-				Level: "Debug",
-			})
+			l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
+
 			ctx := context.Background()
-			repository := adapters.NewUserRepository(s.DB, lg)
+			repository := adapters.NewUserRepository(s.DB, l.Logger)
 			var uu []user.User
 			if tt.requiredSeed == true {
 				fu := factories2.GenerateUsers(10)
