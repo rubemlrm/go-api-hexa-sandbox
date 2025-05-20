@@ -12,7 +12,9 @@ import (
 
 type PostgresTestContainer struct {
 	testcontainers.Container
-	DSN string
+	DSN  string
+	Host string
+	Port string
 }
 
 func StartPostgresContainer(ctx context.Context) (*PostgresTestContainer, error) {
@@ -54,5 +56,7 @@ func StartPostgresContainer(ctx context.Context) (*PostgresTestContainer, error)
 	return &PostgresTestContainer{
 		Container: container,
 		DSN:       dsn,
+		Host:      host,
+		Port:      mappedPort.Port(),
 	}, nil
 }

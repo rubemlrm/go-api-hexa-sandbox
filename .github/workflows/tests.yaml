@@ -89,9 +89,9 @@ jobs:
       - name: get dependencies
         run: go mod tidy && go mod vendor
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.64
+          version: v2.1.6
           args: --timeout=10m
       - name: run tests with coverage
         run: go test -coverprofile=coverage.txt -covermode=atomic ./...
