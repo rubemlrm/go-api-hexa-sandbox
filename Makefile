@@ -18,7 +18,7 @@ start:
 	go run $(SOURCE_MAIN)
 
 install-dependencies:
-	go get -tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+	go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 	go install github.com/pressly/goose/v3/cmd/goose@latest
 	go install github.com/vektra/mockery/v3@v3.2.5
 
