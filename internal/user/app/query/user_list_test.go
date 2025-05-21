@@ -17,7 +17,6 @@ import (
 )
 
 func TestListUsersHandler_Handle(t *testing.T) {
-
 	tests := []struct {
 		name          string
 		searchedUsers *[]user.User
