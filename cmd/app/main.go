@@ -48,7 +48,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	app := user_service.NewApplication(context.Background(), cfg, l.Logger, db)
+	app := user_service.NewApplication(context.Background(), l.Logger, db)
 	err = startWeb(cfg.HTTP, l.Logger, app)
 
 	if err != nil {

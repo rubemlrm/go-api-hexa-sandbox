@@ -86,6 +86,13 @@ jobs:
         with:
           go-version: ${{ matrix.version }}
       - uses: actions/checkout@v4
+
+      - name: install tools
+        run: make install-dependencies
+      - name: generate mocks
+        run: mockery
+      - name: generate openapi
+        run: make generate-openapi
       - name: get dependencies
         run: go mod tidy && go mod vendor
       - name: golangci-lint
