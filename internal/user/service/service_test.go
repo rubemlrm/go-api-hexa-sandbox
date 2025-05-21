@@ -3,11 +3,12 @@ package service_test
 import (
 	"context"
 	"database/sql"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/service"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"log/slog"
 	"testing"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/user/service"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewApplication(t *testing.T) {

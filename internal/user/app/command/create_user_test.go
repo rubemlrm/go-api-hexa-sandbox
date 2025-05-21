@@ -16,7 +16,7 @@ import (
 )
 
 func TestCreateUserHandler_Handle(t *testing.T) {
-	mockRepo := user_mocks.NewMockRepository(t)
+	mockRepo := user_mocks.NewMockUserRepository(t)
 	_, mockDB, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)

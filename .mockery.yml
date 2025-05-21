@@ -1,6 +1,6 @@
-structname: '{{ .InterfaceName | camelcase }}'
+structname: 'Mock{{.InterfaceName}}'
 pkgname: mocks
-filename: '{{ .InterfaceName | camelcase }}_mock.go'
+filename: "mock_{{.InterfaceName}}.go"
 template: testify
 dir: '{{.InterfaceDir}}/mocks'
 packages:
