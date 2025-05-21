@@ -16,13 +16,14 @@ func NewApplication(ctx context.Context, l *slog.Logger, db *sql.DB) app.Applica
 }
 
 func newApplication(_ context.Context, l *slog.Logger, db *sql.DB) app.Application {
+	repo := adapters.NewUserRepository(db, l)
 	return app.Application{
 		Commands: app.Commands{
-			CreateUser: command.NewCreateUserHandler(adapters.NewUserRepository(db, l)),
+			CreateUser: command.NewCreateUserHandler(repo),
 		},
 		Queries: app.Queries{
-			GetUser:  query.NewGetUserHandler(db, l),
-			GetUsers: query.NewListUsersHandler(db, l),
+			GetUser:  query.NewGetUserHandler(repo),
+			GetUsers: query.NewListUsersHandler(repo),
 		},
 	}
 }
