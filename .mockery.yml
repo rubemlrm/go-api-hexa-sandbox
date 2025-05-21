@@ -1,28 +1,27 @@
----
-with-expecter: true
-filename: "mock_{{.InterfaceName}}.go"
-dir: "{{.InterfaceDir}}/mocks/"
-mockname: "Mock{{.InterfaceName}}"
-outpkg: "{{.PackageName}}_mocks"
+structname: '{{ .InterfaceName | camelcase }}'
+pkgname: mocks
+filename: '{{ .InterfaceName | camelcase }}_mock.go'
+template: testify
+dir: '{{.InterfaceDir}}/mocks'
 packages:
+  github.com/rubemlrm/go-api-bootstrap/internal/common/decorator:
+    config:
+      all: true
   github.com/rubemlrm/go-api-bootstrap/internal/common/logger:
     config:
       all: true
   github.com/rubemlrm/go-api-bootstrap/internal/common/validations:
     config:
       all: true
-  github.com/rubemlrm/go-api-bootstrap/internal/common/decorator:
-      config:
-        all: true
   github.com/rubemlrm/go-api-bootstrap/internal/user:
     config:
       all: true
-  github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user:
+  github.com/rubemlrm/go-api-bootstrap/internal/user/app/command:
     config:
       all: true
   github.com/rubemlrm/go-api-bootstrap/internal/user/app/query:
     config:
       all: true
-  github.com/rubemlrm/go-api-bootstrap/internal/user/app/command:
+  github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user:
     config:
       all: true
