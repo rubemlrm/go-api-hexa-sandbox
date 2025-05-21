@@ -137,3 +137,4 @@ coverate.txt
 .idea
 __debug__bin
 __debug_bin
+mocks/
