@@ -15,7 +15,7 @@ func TestSetHandlers(t *testing.T) {
 	engine := gin.NewEngine()
 	l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
 
-	engine.SetHandlers(l.Logger, func() {})
+	engine.SetHandlers(l.Logger, func() {}, "test")
 
 	// Test /swagger-ui route
 	req, _ := http.NewRequest("GET", "/swagger-ui", nil)

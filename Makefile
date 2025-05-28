@@ -29,7 +29,7 @@ mod-download:
 
 generate-openapi: install-dependencies mod-download
 	oapi-codegen -generate types -o internal/user/ports/openapi_types.gen.go -package ports spec/user.yaml
-	oapi-codegen -generate gin-server -o internal/user/ports/openapi_api.gen.go -package ports spec/user.yaml
+	oapi-codegen -generate gin-server -strict-server false -o internal/user/ports/openapi_api.gen.go -package ports spec/user.yaml
 
 
 .PHONY: build
@@ -37,9 +37,10 @@ build: ## Build app
 	go build -o bin/app cmd/app/main.go
 
 
+.PHONY: migrate
 migrate: ## run database migrations
 	goose -dir migrations up
 
-
+.PHONY: migrate-rollback
 migrate-rollback: ## run database migrations
 	goose -dir migrations down

@@ -111,3 +111,14 @@ func (v *Validator) CheckWithTranslations(val interface{}) error {
 	}
 	return nil
 }
+
+func ConvertToMap(errs vl.ValidationErrors) []map[string]string {
+	result := make([]map[string]string, 0, len(errs))
+	for _, e := range errs {
+		result = append(result, map[string]string{
+			"field": e.Field(),
+			"error": fmt.Sprintf("failed on '%s' tag", e.Tag()),
+		})
+	}
+	return result
+}

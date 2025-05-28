@@ -67,7 +67,7 @@ func TestGetUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			mockHandler := query_mocks.NewMockGetUserHandler(t)
-			app := app.Application{
+			app := app.UserModule{
 				Queries: app.Queries{
 					GetUser: mockHandler,
 				},
@@ -139,7 +139,7 @@ func TestListUsers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			mockHandler := query_mocks.NewMockListUsersHandler(t)
-			app := app.Application{
+			app := app.UserModule{
 				Queries: app.Queries{
 					GetUsers: mockHandler,
 				},
@@ -206,7 +206,7 @@ func TestAddUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			mockHandler := command_mocks.NewMockCreateUserHandler(t)
-			app := app.Application{
+			app := app.UserModule{
 				Commands: app.Commands{
 					CreateUser: mockHandler,
 				},

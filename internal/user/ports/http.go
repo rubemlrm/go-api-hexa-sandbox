@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 	"fmt"
+	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 	"log/slog"
 	"net/http"
 	"time"
@@ -19,11 +20,11 @@ import (
 var tracer = otel.Tracer("gin-server")
 
 type HTTPServer struct {
-	app    app.Application
+	app    app.UserModule
 	Logger *slog.Logger
 }
 
-func NewHTTPServer(application app.Application, l *slog.Logger) ServerInterface {
+func NewHTTPServer(application app.UserModule, l *slog.Logger) ServerInterface {
 	return HTTPServer{
 		app:    application,
 		Logger: l,
@@ -42,12 +43,6 @@ func (s HTTPServer) AddUser(c *gin.Context) {
 	ctx = context.WithValue(ctx, "requestID", reqID)
 	defer cancel()
 
-	if err := c.ShouldBindJSON(&uc); err != nil {
-		s.Logger.Error("user", "creation", "error", slog.Any("error", err))
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind"})
-		return
-	}
-
 	id, err := s.app.Commands.CreateUser.Handle(c, uc)
 	if err != nil {
 		s.Logger.Error("user", "creation", "error", slog.Any("error", err))
@@ -60,6 +55,8 @@ func (s HTTPServer) AddUser(c *gin.Context) {
 
 func (s HTTPServer) ListUsers(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	reqID := c.GetString("requestID")
+	ctx = context.WithValue(ctx, "requestID", reqID)
 	defer cancel()
 	res, err := s.app.Queries.GetUsers.Handle(ctx, query.UserSearchFilters{})
 	if err != nil {
@@ -72,6 +69,8 @@ func (s HTTPServer) ListUsers(c *gin.Context) {
 
 func (s HTTPServer) GetUser(c *gin.Context, userID int) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	reqID := c.GetString("requestID")
+	ctx = context.WithValue(ctx, "requestID", reqID)
 	defer cancel()
 	res, err := s.app.Queries.GetUser.Handle(ctx, query.UserSearch{ID: user.ID(userID)})
 	if err != nil {
@@ -86,4 +85,23 @@ func (s HTTPServer) GetUser(c *gin.Context, userID int) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": res})
+}
+
+func RegisterHandlersWithOptionsAndValidations(router gin.IRouter, si ServerInterface, options GinServerOptions, logger *slog.Logger) {
+	errorHandler := options.ErrorHandler
+	if errorHandler == nil {
+		errorHandler = func(c *gin.Context, err error, statusCode int) {
+			c.JSON(statusCode, gin.H{"msg": err.Error()})
+		}
+	}
+
+	wrapper := ServerInterfaceWrapper{
+		Handler:            si,
+		HandlerMiddlewares: options.Middlewares,
+		ErrorHandler:       errorHandler,
+	}
+
+	router.GET(options.BaseURL+"/users", nil, wrapper.ListUsers)
+	router.POST(options.BaseURL+"/users", gin_handler.ValidateRequestBody[*user.UserCreate](logger, wrapper.AddUser))
+	router.GET(options.BaseURL+"/users/:userId", nil, wrapper.GetUser)
 }
