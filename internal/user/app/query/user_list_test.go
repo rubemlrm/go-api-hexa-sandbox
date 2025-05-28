@@ -3,6 +3,7 @@ package query_test
 import (
 	"context"
 	"errors"
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 	"testing"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
@@ -56,6 +57,7 @@ func TestListUsersHandler_Handle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
 			mockRepo := user_mocks.NewMockUserRepository(t)
 			_, mockDB, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 			if err != nil {
@@ -70,7 +72,7 @@ func TestListUsersHandler_Handle(t *testing.T) {
 					WillReturnError(errors.New("repository error"))
 			}
 
-			cmd := query.NewListUsersHandler(mockRepo)
+			cmd := query.NewListUsersHandler(mockRepo, l.Logger)
 			mockRepo.On("All", context.Background()).Return(tt.searchedUsers, tt.mockError)
 
 			id, err := cmd.Handle(context.Background(), tt.searchInput)

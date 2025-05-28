@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"path"
+	"runtime"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -13,6 +15,7 @@ type (
 		HTTP     HTTP     `mapstructure:"http"`
 		Database Database `mapstructure:"database"`
 		Logger   Logger   `mapstructure:"logger"`
+		Tracing  Tracing  `mapstructure:"tracing"`
 	}
 
 	App struct {
@@ -38,14 +41,19 @@ type (
 		Handler string `env-required:"true" mapstructure:"handler"    env:"LOGGER_HANDLER"`
 		Level   string `env-required:"true" mapstructure:"level"    env:"LOGGER_LEVEL"`
 	}
+	Tracing struct {
+		AgentHost   string `env-required:"true" mapstructure:"agentHost"    env:"TRACING_AGENT_HOST"`
+		AgentPort   string `env-required:"true" mapstructure:"agentPort"    env:"TRACING_AGENT_PORT"`
+		ServiceName string `env-required:"true" mapstructure:"serviceName"    env:"TRACING_SERVICE_NAME"`
+	}
 )
 
 // LoadConfig function  
 func LoadConfig(configName string) (*Config, error) {
 	cfg := &Config{}
 	viper.SetConfigName(configName)
-
-	viper.AddConfigPath(".")
+	_, filename, _, _ := runtime.Caller(0)
+	viper.AddConfigPath(path.Join(path.Dir(filename)))
 
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()

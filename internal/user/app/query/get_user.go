@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/decorator"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
@@ -17,10 +18,11 @@ type GetUser struct {
 	userRepository user.UserRepository
 }
 
-func NewGetUserHandler(repository user.UserRepository) decorator.QueryHandler[UserSearch, *user.User] {
-	return GetUser{
-		userRepository: repository,
-	}
+func NewGetUserHandler(repository user.UserRepository, l *slog.Logger) GetUserHandler {
+	return decorator.ApplyQueryDecorators[UserSearch, *user.User](
+		GetUser{userRepository: repository},
+		l,
+	)
 }
 
 func (m GetUser) Handle(ctx context.Context, q UserSearch) (*user.User, error) {
