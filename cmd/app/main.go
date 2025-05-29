@@ -6,18 +6,24 @@ import (
 	"log/slog"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/api"
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/app"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 	ginhandler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/postgres"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/tracing"
-	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/ports"
 	user_service "github.com/rubemlrm/go-api-bootstrap/internal/user/service"
 )
 
 func main() {
-	tp, err := tracing.InitTracer()
+	cfg, err := config.LoadConfig("config")
+
+	if err != nil {
+		panic(err)
+	}
+
+	tp, err := tracing.InitTracer(cfg.Tracing)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,11 +32,6 @@ func main() {
 			log.Printf("Error shutting down tracer provider: %v", err)
 		}
 	}()
-	cfg, err := config.LoadConfig("config")
-
-	if err != nil {
-		panic(err)
-	}
 
 	//metrics.InitMeter()
 
@@ -44,12 +45,13 @@ func main() {
 		postgres.WithPassword(cfg.Database.Password),
 		postgres.WithHost(cfg.Database.Host),
 		postgres.WithPort(cfg.Database.Port),
-		postgres.WithSchema(cfg.Database.Schema))
+		postgres.WithSchema(cfg.Database.Schema),
+		postgres.WithSSLMode(cfg.Database.SSLMode))
 	if err != nil {
 		panic(err)
 	}
-	app := user_service.NewApplication(context.Background(), l.Logger, db)
-	err = startWeb(cfg.HTTP, l.Logger, app)
+	um := user_service.NewApplication(context.Background(), l.Logger, db)
+	err = startWeb(cfg.HTTP, l.Logger, app.Application{UserModule: um})
 
 	if err != nil {
 		panic(err)
@@ -62,7 +64,7 @@ func startWeb(httpConfig config.HTTP, logger *slog.Logger, app app.Application) 
 		opt := ports.GinServerOptions{
 			BaseURL: "/api/v1",
 		}
-		ports.RegisterHandlersWithOptions(ne.Engine, ports.NewHTTPServer(app, logger), opt)
+		ports.RegisterHandlersWithOptions(ne.Engine, ports.NewHTTPServer(app.UserModule, logger), opt)
 	})
 	srv, err := api.NewServer(ne.StartHTTP(), httpConfig, logger)
 

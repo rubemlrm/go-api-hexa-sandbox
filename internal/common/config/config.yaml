@@ -19,3 +19,8 @@ database:
 logger:
   handler:
   level:
+
+tracing:
+  agentHost: 'localhost'
+  agentPort: '4317'
+  serviceName: 'api-gin-template'

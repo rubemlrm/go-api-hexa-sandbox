@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-faker/faker/v4"
 	user_mocks "github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user/mocks"
@@ -61,6 +63,7 @@ func TestCreateUserHandler_Handle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
 			if tt.expectUser {
 				mockDB.ExpectQuery("INSERT into users (name, email, password) values($1,$2,$3) RETURNING id").
 					WithArgs(tt.input.Name, tt.input.Email, tt.input.Password).
@@ -71,7 +74,7 @@ func TestCreateUserHandler_Handle(t *testing.T) {
 					WillReturnError(errors.New("repository error"))
 			}
 
-			cmd := command.NewCreateUserHandler(mockRepo)
+			cmd := command.NewCreateUserHandler(mockRepo, l.Logger)
 			mockRepo.On("Create", context.Background(), tt.input).Return(tt.mockUserID, tt.mockError)
 
 			id, err := cmd.Handle(context.Background(), tt.input)
