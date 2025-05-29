@@ -7,7 +7,7 @@ import (
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
 )
 
-type Application struct {
+type UserModule struct {
 	Commands Commands
 	Queries  Queries
 	Logger   *slog.Logger

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -63,6 +65,7 @@ func TestGetUserHandler_Handle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
 			if tt.expectUser {
 				mockDB.ExpectQuery("SELECT id, name, password, is_enabled FROM users where id = $1").
 					WithArgs(tt.searchInput.ID).
@@ -73,7 +76,7 @@ func TestGetUserHandler_Handle(t *testing.T) {
 					WillReturnError(errors.New("repository error"))
 			}
 
-			cmd := query.NewGetUserHandler(mockRepo)
+			cmd := query.NewGetUserHandler(mockRepo, l.Logger)
 			mockRepo.On("Get", context.Background(), tt.searchInput.ID).Return(tt.searchedUser, tt.mockError)
 
 			id, err := cmd.Handle(context.Background(), tt.searchInput)
