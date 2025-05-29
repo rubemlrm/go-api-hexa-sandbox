@@ -32,8 +32,7 @@ func NewHTTPServer(application app.UserModule, l *slog.Logger) ServerInterface {
 }
 
 func (s HTTPServer) AddUser(c *gin.Context) {
-	var uc *user.UserCreate
-
+	req := c.MustGet("userCreate").(*user.UserCreate)
 	_, span := tracer.Start(c.Request.Context(), "AddUser")
 	defer span.End()
 
@@ -43,7 +42,7 @@ func (s HTTPServer) AddUser(c *gin.Context) {
 	ctx = context.WithValue(ctx, "requestID", reqID)
 	defer cancel()
 
-	id, err := s.app.Commands.CreateUser.Handle(c, uc)
+	id, err := s.app.Commands.CreateUser.Handle(c, req)
 	if err != nil {
 		s.Logger.Error("user", "creation", "error", slog.Any("error", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -101,7 +100,7 @@ func RegisterHandlersWithOptionsAndValidations(router gin.IRouter, si ServerInte
 		ErrorHandler:       errorHandler,
 	}
 
-	router.GET(options.BaseURL+"/users", nil, wrapper.ListUsers)
-	router.POST(options.BaseURL+"/users", gin_handler.ValidateRequestBody[*user.UserCreate](logger, wrapper.AddUser))
-	router.GET(options.BaseURL+"/users/:userId", nil, wrapper.GetUser)
+	router.GET(options.BaseURL+"/users", wrapper.ListUsers)
+	router.POST(options.BaseURL+"/users", gin_handler.ValidateRequestBody[*user.UserCreate](logger, "userCreate"), wrapper.AddUser)
+	router.GET(options.BaseURL+"/users/:userId", wrapper.GetUser)
 }

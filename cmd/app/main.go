@@ -51,21 +51,21 @@ func main() {
 		panic(err)
 	}
 	um := user_service.NewApplication(context.Background(), l.Logger, db)
-	err = startWeb(cfg.HTTP, l.Logger, app.Application{UserModule: um})
+	err = startWeb(cfg.HTTP, l.Logger, app.Application{UserModule: um}, cfg.App.Name)
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func startWeb(httpConfig config.HTTP, logger *slog.Logger, app app.Application) error {
+func startWeb(httpConfig config.HTTP, logger *slog.Logger, app app.Application, appName string) error {
 	ne := ginhandler.NewEngine()
 	ne.SetHandlers(logger, func() {
 		opt := ports.GinServerOptions{
 			BaseURL: "/api/v1",
 		}
-		ports.RegisterHandlersWithOptions(ne.Engine, ports.NewHTTPServer(app.UserModule, logger), opt)
-	})
+		ports.RegisterHandlersWithOptionsAndValidations(ne.Engine, ports.NewHTTPServer(app.UserModule, logger), opt, logger)
+	}, appName)
 	srv, err := api.NewServer(ne.StartHTTP(), httpConfig, logger)
 
 	if err != nil {

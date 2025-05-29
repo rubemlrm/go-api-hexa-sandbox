@@ -1,9 +1,7 @@
 package gin
 
 import (
-	"errors"
-	"github.com/go-playground/validator/v10"
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"log/slog"
 	"net/http"
 	"time"
@@ -27,10 +25,10 @@ func NewEngine() *Engine {
 
 func (s *Engine) SetHandlers(logger *slog.Logger, openapiHandler func(), appName string) {
 	s.Engine.StaticFile("/swagger", "./spec/user.yaml")
-	// s.Engine.Use(otelgin.Middleware(appName))
+	s.Engine.Use(otelgin.Middleware(appName))
 	s.Engine.Use(SetRequestID())
 	s.Engine.Use(RequestLogger(logger))
-	// s.Engine.Use(otelgin.Middleware(appName))
+	s.Engine.Use(otelgin.Middleware(appName))
 	opts := middleware.SwaggerUIOpts{SpecURL: "/swagger", Path: "/swagger-ui"}
 	sh := middleware.SwaggerUI(opts, nil)
 	s.Engine.GET("/swagger-ui", func(ctx *gin.Context) {
@@ -81,29 +79,6 @@ func RequestLogger(log *slog.Logger) gin.HandlerFunc {
 			"context", "http",
 		}
 		log.Log(c, convertToLogLevel(c.Writer.Status()), "Request received", logData...)
-	}
-}
-
-func ValidateRequestBody[T any](log *slog.Logger, handler func(c *gin.Context, dto T)) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var payload T
-		requestID, _ := c.Get("requestID")
-		if err := c.ShouldBindJSON(&payload); err != nil {
-			var validationErrors validator.ValidationErrors
-			ok := errors.As(err, &validationErrors)
-			if ok {
-				log.Warn("validation", "creation", "error", slog.Any("error", err), slog.String("requestID", requestID.(string)), slog.Any("context", "Validation"))
-				c.JSON(http.StatusUnprocessableEntity, gin.H{
-					"message": "Validation failed",
-					"errors":  validations.ConvertToMap(validationErrors),
-				})
-				return
-			}
-			log.Error("validation", "creation", "error", slog.Any("error", err), slog.String("requestID", requestID.(string)), slog.Any("context", "Validation"))
-			c.JSON(http.StatusBadRequest, gin.H{"error": err})
-			return
-		}
-		handler(c, payload)
 	}
 }
 

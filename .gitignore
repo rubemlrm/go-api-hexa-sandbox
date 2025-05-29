@@ -138,5 +138,4 @@ coverate.txt
 __debug__bin
 __debug_bin
 mocks/
-openapi_api.gen.go
-openapi_types.gen.go
+*.gen.go
