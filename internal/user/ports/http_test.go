@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
+
+	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
 	command_mocks "github.com/rubemlrm/go-api-bootstrap/internal/user/app/command/mocks"
@@ -68,12 +69,12 @@ func TestGetUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			mockHandler := query_mocks.NewMockGetUserHandler(t)
-			app := app.UserModule{
+			application := app.UserModule{
 				Queries: app.Queries{
 					GetUser: mockHandler,
 				},
 			}
-			s := ports.NewHTTPServer(app, logger)
+			s := ports.NewHTTPServer(application, logger)
 			mockHandler.On("Handle", mock.Anything, query.UserSearch{
 				ID: user.ID(tt.userID),
 			}).Return(tt.mockUser, tt.mockError)
@@ -140,12 +141,12 @@ func TestListUsers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			mockHandler := query_mocks.NewMockListUsersHandler(t)
-			app := app.UserModule{
+			application := app.UserModule{
 				Queries: app.Queries{
 					GetUsers: mockHandler,
 				},
 			}
-			s := ports.NewHTTPServer(app, logger)
+			s := ports.NewHTTPServer(application, logger)
 			mockHandler.On("Handle", mock.Anything, query.UserSearchFilters{}).Return(tt.mockResultUsers, tt.mockError)
 			router := gin.Default()
 			router.GET("/api/v1/users/", func(c *gin.Context) {
@@ -199,12 +200,12 @@ func TestAddUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			mockHandler := command_mocks.NewMockCreateUserHandler(t)
-			app := app.UserModule{
+			application := app.UserModule{
 				Commands: app.Commands{
 					CreateUser: mockHandler,
 				},
 			}
-			s := ports.NewHTTPServer(app, logger)
+			s := ports.NewHTTPServer(application, logger)
 			mockHandler.On("Handle", mock.Anything, mock.Anything).Return(user.ID(tt.mockUserID), tt.mockError).Maybe()
 			router := gin.Default()
 			router.Use(func(c *gin.Context) {
