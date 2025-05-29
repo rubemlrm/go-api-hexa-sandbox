@@ -1,7 +1,9 @@
-package validations
+package validations_test
 
 import (
 	"errors"
+	validations "github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/validations/mocks"
 	"testing"
 
 	"github.com/go-faker/faker/v4"
@@ -44,7 +46,7 @@ func TestRegisterCustomTranslation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := New("en", WithCustomTranslation(tt.translationTag, tt.translationMessage))
+			_, err := validations.New("en", validations.WithCustomTranslation(tt.translationTag, tt.translationMessage))
 			assert.Equal(t, tt.expectedError, err)
 		})
 	}
@@ -102,7 +104,7 @@ func TestWithCustomFieldLabel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			vl, err := New("en", WithCustomFieldLabel(tt.labelValue))
+			vl, err := validations.New("en", validations.WithCustomFieldLabel(tt.labelValue))
 			if tt.expectErrorOnNew == true && tt.expectedValidations == nil {
 				assert.Equal(t, tt.expectedError, err)
 				assert.Error(t, err)
@@ -144,7 +146,7 @@ func TestWithCustomValidationRule(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := New("en", WithCustomValidationRule(tt.validationTag, tt.validatorFunc))
+			_, err := validations.New("en", validations.WithCustomValidationRule(tt.validationTag, tt.validatorFunc))
 
 			assert.Equal(t, tt.expectedError, err)
 		})
@@ -161,17 +163,27 @@ func TestCheck(t *testing.T) {
 		input               Input
 		validatorFunc       validator.Func
 		expectedError       error
+		mockedError         error
 		expectedValidations []map[string]string
 	}{
 		{
 			name:                "validated struct with success",
 			input:               Input{Email: faker.Email()},
+			mockedError:         nil,
 			expectedError:       nil,
 			expectedValidations: nil,
 		},
 		{
-			name:          "failed to validate struct",
+			name:                "failed to validate struct",
+			input:               Input{Email: ""},
+			mockedError:         errors.New("key: 'Input.Email' Error:Field validation for 'Email' failed on the 'email' tag"),
+			expectedError:       errors.New("failed to validate: key: 'Input.Email' Error:Field validation for 'Email' failed on the 'email' tag"),
+			expectedValidations: []map[string]string(nil),
+		},
+		{
+			name:          "failed to validate struct fields with empty email",
 			input:         Input{Email: ""},
+			mockedError:   nil,
 			expectedError: nil,
 			expectedValidations: []map[string]string{
 				{"error": "Key: 'Input.Email' Error:Field validation for 'Email' failed on the 'email' tag", "field": "Email"},
@@ -181,8 +193,20 @@ func TestCheck(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			vl, err := New("en")
-			assert.NoError(t, err)
+			var vl *validations.Validator
+			var err error
+			if tt.mockedError != nil {
+				mockStructValidator := mocks.NewMockStructValidator(t)
+				vl = &validations.Validator{
+					Validate:     mockStructValidator,
+					Translations: nil,
+				}
+				mockStructValidator.On("Struct", tt.input).Return(tt.mockedError)
+			} else {
+				vl, err = validations.New("en")
+				assert.NoError(t, err)
+			}
+
 			failedValidations, err := vl.ValidateInput(tt.input)
 			assert.Equal(t, tt.expectedError, err)
 			assert.Equal(t, tt.expectedValidations, failedValidations)
@@ -225,7 +249,7 @@ func TestCheckWithTranslations(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			vl, err := New("en", WithCustomTranslation(tt.translationTag, tt.translationMessage))
+			vl, err := validations.New("en", validations.WithCustomTranslation(tt.translationTag, tt.translationMessage))
 
 			assert.NoError(t, err)
 			failedValidations, err := vl.ValidateInput(tt.input)

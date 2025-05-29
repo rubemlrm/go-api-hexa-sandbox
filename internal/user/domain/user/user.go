@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
 )
 
@@ -37,7 +36,6 @@ type UseCase interface {
 func (u *UserCreate) Check(vf validations.ValidationFunc) ([]map[string]string, error) {
 	vl, err := vf("en",
 		validations.WithCustomFieldLabel("json"),
-		validations.WithCustomValidationRule("is-awesome", ValidateMyVal),
 		validations.WithCustomTranslation("required", "{0} must have a value!"),
 	)
 
@@ -54,10 +52,6 @@ func (u *UserCreate) Check(vf validations.ValidationFunc) ([]map[string]string, 
 		return failedValidations, nil
 	}
 	return nil, nil
-}
-
-func ValidateMyVal(fl validator.FieldLevel) bool {
-	return fl.Field().String() == "awesome"
 }
 
 func (user User) CheckIsEnabled() (enabled bool) {
