@@ -27,9 +27,9 @@ install-dependencies:
 mod-download:
 	go mod download
 
-generate-openapi: install-dependencies mod-download
-	oapi-codegen -generate types -o internal/user/ports/openapi_types.gen.go -package ports spec/user.yaml
-	oapi-codegen -generate gin-server -strict-server false -o internal/user/ports/openapi_api.gen.go -package ports spec/user.yaml
+.PHONY: generate-openapi
+generate-openapi:
+	oapi-codegen -config oapi-config.yaml -o internal/user/ports/user.openapi.gen.go  spec/user.yaml
 
 
 .PHONY: build

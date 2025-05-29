@@ -6,6 +6,5 @@ generate:
   models: true
   embedded-spec: true
   strict-server: true
-output: internal/user/ports/api.gen.go
 output-options:
   skip-prune: true
