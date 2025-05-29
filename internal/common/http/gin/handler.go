@@ -84,7 +84,7 @@ func RequestLogger(log *slog.Logger) gin.HandlerFunc {
 }
 
 func convertToLogLevel(level int) slog.Level {
-	if level > 500 {
+	if level >= 500 {
 		return slog.LevelError
 	}
 	if level >= 400 && level < 500 {

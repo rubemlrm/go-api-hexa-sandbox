@@ -46,7 +46,7 @@ func (s HTTPServer) AddUser(c *gin.Context) {
 	id, err := s.app.Commands.CreateUser.Handle(c, req)
 	if err != nil {
 		s.Logger.Error("user", "creation", "error", slog.Any("error", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"errors": err.Error()})
 		return
 	}
 

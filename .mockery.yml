@@ -25,3 +25,6 @@ packages:
   github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user:
     config:
       all: true
+  github.com/rubemlrm/go-api-bootstrap/internal/user/ports:
+    config:
+      all: true

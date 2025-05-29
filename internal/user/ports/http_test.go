@@ -26,6 +26,25 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+var _ ports.ServerInterface = (*MockServerInterface)(nil)
+
+type MockServerInterface struct {
+}
+
+func (m *MockServerInterface) ListUsers(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "ListUsers called"})
+}
+
+func (m *MockServerInterface) AddUser(c *gin.Context) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *MockServerInterface) GetUser(c *gin.Context, userId int) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func TestGetUser(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -194,6 +213,14 @@ func TestAddUser(t *testing.T) {
 			mockError:        errors.New(`"{"errors":[{"error":"Key: 'UserCreate.email' Error:Field validation for 'email' failed on the 'email' tag","field":"email"}],"message":"Validation failed"}"`),
 			mockUserID:       0,
 		},
+		{
+			name:             "failed to create user",
+			expectedStatus:   http.StatusInternalServerError,
+			expectedRequest:  uf.CreateUserCreate(),
+			expectedResponse: `{"errors":"Internal error"}`,
+			mockError:        errors.New(`Internal error`),
+			mockUserID:       0,
+		},
 	}
 
 	for _, tt := range tests {
@@ -233,4 +260,39 @@ func TestAddUser(t *testing.T) {
 			mockHandler.AssertExpectations(t)
 		})
 	}
+}
+
+func TestRegisterHandlersWithOptionsAndValidations(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	mockSI := &MockServerInterface{}
+	options := ports.GinServerOptions{BaseURL: "/api/v1"}
+	logger := slog.Default()
+
+	ports.RegisterHandlersWithOptionsAndValidations(router, mockSI, options, logger)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/users", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	// Add more assertions as needed
+}
+
+func TestRegisterHandlersWithOptionsAndValidationsWithoutErrorHandler(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	mockSI := &MockServerInterface{}
+	var options ports.GinServerOptions
+
+	logger := slog.Default()
+
+	ports.RegisterHandlersWithOptionsAndValidations(router, mockSI, options, logger)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/users", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+	// Add more assertions as needed
 }
