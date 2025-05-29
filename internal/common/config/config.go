@@ -52,6 +52,7 @@ type (
 func LoadConfig(configName string) (*Config, error) {
 	cfg := &Config{}
 	viper.SetConfigName(configName)
+	//nolint: dogsled
 	_, filename, _, _ := runtime.Caller(0)
 	viper.AddConfigPath(path.Join(path.Dir(filename)))
 

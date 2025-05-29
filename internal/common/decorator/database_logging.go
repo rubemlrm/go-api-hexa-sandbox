@@ -42,7 +42,6 @@ type DatabaseLoggingQueryDecorator[Q any, R any] struct {
 }
 
 func (d DatabaseLoggingQueryDecorator[C, R]) Handle(ctx context.Context, cmd C) (result R, err error) {
-
 	start := time.Now()
 	loggerAttrs := []any{
 		"operation_type", "database",

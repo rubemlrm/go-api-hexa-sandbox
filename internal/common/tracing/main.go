@@ -3,6 +3,7 @@ package tracing
 import (
 	"context"
 	"fmt"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 
 	"go.opentelemetry.io/otel"

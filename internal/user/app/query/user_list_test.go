@@ -3,8 +3,9 @@ package query_test
 import (
 	"context"
 	"errors"
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 	"testing"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
 

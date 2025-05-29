@@ -19,11 +19,11 @@ import (
 var tracer = otel.Tracer("gin-server")
 
 type HTTPServer struct {
-	app    app.Application
+	app    app.UserModule
 	Logger *slog.Logger
 }
 
-func NewHTTPServer(application app.Application, l *slog.Logger) ServerInterface {
+func NewHTTPServer(application app.UserModule, l *slog.Logger) ServerInterface {
 	return HTTPServer{
 		app:    application,
 		Logger: l,

@@ -3,8 +3,9 @@ package command_test
 import (
 	"context"
 	"errors"
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 	"testing"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-faker/faker/v4"
