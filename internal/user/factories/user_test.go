@@ -36,3 +36,12 @@ func TestUserFactory_CreateInvalidUserCreate(t *testing.T) {
 	// Email should not be a valid email, as it's generated with faker.Password()
 	assert.NotEqual(t, uc.Email, faker.Email())
 }
+
+func TestUserFactory_CreateInvalidUserWithoutEmailCreate(t *testing.T) {
+	uf := factories.UserFactory{}
+	uc := uf.CreateInvalidUserWithoutEmailCreate()
+	assert.NotNil(t, uc)
+	assert.NotEmpty(t, uc.Name)
+	assert.Empty(t, uc.Email)
+	assert.NotEqual(t, uc.Email, faker.Email())
+}
