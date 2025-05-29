@@ -2,6 +2,8 @@ package validations_test
 
 import (
 	"errors"
+	validations "github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/validations/mocks"
 	"testing"
 
 	validations "github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
