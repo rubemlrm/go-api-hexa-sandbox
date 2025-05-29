@@ -3,10 +3,11 @@ package ports
 import (
 	"context"
 	"fmt"
-	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 	"log/slog"
 	"net/http"
 	"time"
+
+	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"

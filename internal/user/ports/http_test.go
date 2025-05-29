@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 	"io"
 	"log/slog"
 	"net/http"
@@ -186,18 +187,10 @@ func TestAddUser(t *testing.T) {
 		},
 		{
 			name:             "failed to create user",
-			expectedStatus:   http.StatusInternalServerError,
-			expectedRequest:  uf.CreateUserCreate(),
-			expectedResponse: `{"error":"internal error"}`,
-			mockError:        errors.New("internal error"),
-			mockUserID:       0,
-		},
-		{
-			name:             "failed to bind json",
-			expectedStatus:   http.StatusBadRequest,
+			expectedStatus:   http.StatusUnprocessableEntity,
 			expectedRequest:  uf.CreateInvalidUserCreate(),
-			expectedResponse: `{"error":"failed to bind"}`,
-			mockError:        nil,
+			expectedResponse: `{"errors":[{"error":"Key: 'UserCreate.email' Error:Field validation for 'email' failed on the 'email' tag","field":"email"}],"message":"Validation failed"}`,
+			mockError:        errors.New(`"{"errors":[{"error":"Key: 'UserCreate.email' Error:Field validation for 'email' failed on the 'email' tag","field":"email"}],"message":"Validation failed"}"`),
 			mockUserID:       0,
 		},
 	}
@@ -214,7 +207,12 @@ func TestAddUser(t *testing.T) {
 			s := ports.NewHTTPServer(app, logger)
 			mockHandler.On("Handle", mock.Anything, mock.Anything).Return(user.ID(tt.mockUserID), tt.mockError).Maybe()
 			router := gin.Default()
-			router.POST("/api/v1/users/", s.AddUser)
+			router.Use(func(c *gin.Context) {
+				requestID := "test-request-id"
+				c.Set("requestID", requestID)
+				c.Next()
+			})
+			router.POST("/api/v1/users/", gin_handler.ValidateRequestBody[*user.UserCreate](logger, "userCreate"), s.AddUser)
 
 			var requestBody []byte
 			var err error

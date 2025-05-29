@@ -32,3 +32,10 @@ func (s *UserFactory) CreateInvalidUserCreate() *user.UserCreate {
 		Email: faker.Password(),
 	}
 }
+
+func (s *UserFactory) CreateInvalidUserWithoutEmailCreate() *user.UserCreate {
+	return &user.UserCreate{
+		Name:     faker.Name(),
+		Password: faker.Password(),
+	}
+}

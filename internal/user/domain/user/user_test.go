@@ -32,35 +32,42 @@ func TestUserEnabled(t *testing.T) {
 func TestUserValidate(t *testing.T) {
 	uf := factories.UserFactory{}
 	tests := []struct {
-		name           string
-		user           *user.UserCreate
-		validationFunc validations.ValidationFunc
-		expectedErr    error
+		name                string
+		user                *user.UserCreate
+		validationFunc      validations.ValidationFunc
+		expectedErr         error
+		expectedValidations []map[string]string
 	}{
 		{
-			name:           "fail validation initialization error",
-			user:           &user.UserCreate{},
-			validationFunc: mockValidationFuncError,
-			expectedErr:    errors.New("validation initialization error"),
+			name:                "fail validation initialization error",
+			user:                &user.UserCreate{},
+			validationFunc:      mockValidationFuncError,
+			expectedErr:         errors.New("validation initialization error"),
+			expectedValidations: nil,
 		},
 		{
-			name:           "user validated with success",
-			user:           uf.CreateUserCreate(),
-			validationFunc: validations.New,
-			expectedErr:    nil,
+			name:                "user validated with success",
+			user:                uf.CreateUserCreate(),
+			validationFunc:      validations.New,
+			expectedErr:         nil,
+			expectedValidations: nil,
 		},
 		{
 			name:           "user failed to validate",
-			user:           uf.CreateInvalidUserCreate(),
+			user:           uf.CreateInvalidUserWithoutEmailCreate(),
 			validationFunc: validations.New,
-			expectedErr:    errors.New("failed to validate: map[UserCreate.email:Key: 'UserCreate.email' Error:Field validation for 'email' failed on the 'email' tag]"),
+			expectedErr:    nil,
+			expectedValidations: []map[string]string{
+				{"error": "email must have a value!", "field": "email"},
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.user.Validate(tt.validationFunc)
+			failedValidations, err := tt.user.Check(tt.validationFunc)
 			assert.Equal(t, tt.expectedErr, err)
+			assert.Equal(t, tt.expectedValidations, failedValidations)
 		})
 	}
 }

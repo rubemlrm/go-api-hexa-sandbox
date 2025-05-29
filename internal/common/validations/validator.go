@@ -11,9 +11,8 @@ import (
 	vl "github.com/go-playground/validator/v10"
 )
 
-type Validater interface {
-	Check(val interface{}) bool
-	CheckWithTranslations(val interface{}) error
+type Validater[T any] interface {
+	Check(vf ValidationFunc) ([]map[string]string, error)
 }
 
 type Validator struct {
@@ -94,30 +93,25 @@ func WithCustomValidationRule(tag string, fn vl.Func) Option {
 	}
 }
 
-func (v *Validator) Check(val interface{}) error {
+func (v Validator) ValidateInput(val interface{}) ([]map[string]string, error) {
 	err := v.validate.Struct(val)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to validate: %s", err))
+		var validationErrors vl.ValidationErrors
+		hasErrors := errors.As(err, &validationErrors)
+		if hasErrors {
+			return v.ConvertToMap(err.(vl.ValidationErrors)), nil
+		}
+		return nil, errors.New(fmt.Sprintf("failed to validate: %s", err))
 	}
-	return nil
+	return nil, nil
 }
 
-func (v *Validator) CheckWithTranslations(val interface{}) error {
-	err := v.validate.Struct(val)
-	if err != nil {
-		var trs vl.ValidationErrors
-		errors.As(err, &trs)
-		return errors.New(fmt.Sprintf("failed to validate: %s", trs.Translate(v.translations)))
-	}
-	return nil
-}
-
-func ConvertToMap(errs vl.ValidationErrors) []map[string]string {
+func (v Validator) ConvertToMap(errs vl.ValidationErrors) []map[string]string {
 	result := make([]map[string]string, 0, len(errs))
 	for _, e := range errs {
 		result = append(result, map[string]string{
 			"field": e.Field(),
-			"error": fmt.Sprintf("failed on '%s' tag", e.Tag()),
+			"error": e.Translate(v.translations),
 		})
 	}
 	return result
