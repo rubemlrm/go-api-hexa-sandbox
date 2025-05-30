@@ -21,12 +21,12 @@ func ValidateRequestBody[T validations.Validater[any]](log *slog.Logger, key str
 		}
 		failedValidations, err := payload.Check(validations.New)
 		if err != nil {
-			log.Error("validation", key, "error", slog.Any("error", "Invalid request body"), slog.String("requestID", requestID.(string)), slog.Any("context", "Validation"))
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			log.Error("validation", key, "error", slog.Any("error", "Unhandled exception for input validation"), slog.String("requestID", requestID.(string)), slog.Any("context", "Validation"))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unhandled exception for input validation"})
 			c.Abort()
 			return
 		}
-		if failedValidations != nil {
+		if len(failedValidations) > 0 {
 			log.Warn("validation", key, "error", slog.Any("error", err), slog.String("requestID", requestID.(string)), slog.Any("context", "Validation"))
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
 				"message": "Validation failed",
