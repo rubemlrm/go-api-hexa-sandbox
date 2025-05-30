@@ -30,7 +30,6 @@ func (m *MockTestPayload) Check(vf validations.ValidationFunc) ([]map[string]str
 }
 
 func TestValidateRequestBody(t *testing.T) {
-
 	var tests = []struct {
 		name           string
 		factory        func() error
@@ -103,7 +102,6 @@ func TestValidateRequestBody(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			gin.SetMode(gin.TestMode)
 			router := gin.Default()
 			router.Use(func(c *gin.Context) {
