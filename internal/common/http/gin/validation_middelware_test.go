@@ -33,7 +33,7 @@ func TestValidateRequestBody(t *testing.T) {
 	var tests = []struct {
 		name           string
 		factory        func() error
-		payload        MockTestPayload
+		payload        map[string]interface{}
 		expectedStatus int
 		expectedBody   string
 		mockedBody     gin.H
@@ -44,8 +44,10 @@ func TestValidateRequestBody(t *testing.T) {
 		checkFunc      func() ([]map[string]string, error)
 	}{
 		{
-			name:    "Valid payload",
-			payload: MockTestPayload{Name: "test"},
+			name: "Valid payload",
+			payload: map[string]interface{}{
+				"name": "test",
+			},
 			checkFunc: func() ([]map[string]string, error) {
 				return nil, nil
 			},
@@ -58,8 +60,10 @@ func TestValidateRequestBody(t *testing.T) {
 			handlerCalled:  true,
 		},
 		{
-			name:    "Invalid payload",
-			payload: MockTestPayload{Name: ""},
+			name: "Invalid payload",
+			payload: map[string]interface{}{
+				"name": "",
+			},
 			checkFunc: func() ([]map[string]string, error) {
 				return []map[string]string{
 					{"field": "name", "error": "name must have a value!"},
@@ -85,8 +89,10 @@ func TestValidateRequestBody(t *testing.T) {
 			handlerCalled: false,
 		},
 		{
-			name:    "Failed to decode request body",
-			payload: MockTestPayload{},
+			name: "Failed to decode request body",
+			payload: map[string]interface{}{
+				"": "",
+			},
 			checkFunc: func() ([]map[string]string, error) {
 				return nil, errors.New("invalid request body")
 			},
