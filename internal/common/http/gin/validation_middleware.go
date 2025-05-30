@@ -16,7 +16,7 @@ func ValidateRequestBody[T validations.Validater[any]](factory func() T, log *sl
 		decoder := json.NewDecoder(c.Request.Body)
 		if err := decoder.Decode(&obj); err != nil {
 			log.Error("validation", key, "error", slog.Any("error", "Invalid request body"), slog.String("requestID", requestID.(string)), slog.Any("context", "Validation"))
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 			c.Abort()
 			return
 		}

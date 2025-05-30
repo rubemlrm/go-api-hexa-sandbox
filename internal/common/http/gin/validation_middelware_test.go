@@ -2,7 +2,6 @@ package gin_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
@@ -33,7 +32,7 @@ func TestValidateRequestBody(t *testing.T) {
 	var tests = []struct {
 		name           string
 		factory        func() error
-		payload        map[string]interface{}
+		payload        []byte
 		expectedStatus int
 		expectedBody   string
 		mockedBody     gin.H
@@ -44,10 +43,8 @@ func TestValidateRequestBody(t *testing.T) {
 		checkFunc      func() ([]map[string]string, error)
 	}{
 		{
-			name: "Valid payload",
-			payload: map[string]interface{}{
-				"name": "test",
-			},
+			name:    "Valid payload",
+			payload: []byte(`{"name":"test"}`),
 			checkFunc: func() ([]map[string]string, error) {
 				return nil, nil
 			},
@@ -60,10 +57,8 @@ func TestValidateRequestBody(t *testing.T) {
 			handlerCalled:  true,
 		},
 		{
-			name: "Invalid payload",
-			payload: map[string]interface{}{
-				"name": "",
-			},
+			name:    "Invalid payload",
+			payload: []byte(`{"name":""}`),
 			checkFunc: func() ([]map[string]string, error) {
 				return []map[string]string{
 					{"field": "name", "error": "name must have a value!"},
@@ -89,10 +84,8 @@ func TestValidateRequestBody(t *testing.T) {
 			handlerCalled: false,
 		},
 		{
-			name: "Failed to decode request body",
-			payload: map[string]interface{}{
-				"": "",
-			},
+			name:    "Failed to validate payload because of unhandled exception",
+			payload: []byte(`{"":"test"}`),
 			checkFunc: func() ([]map[string]string, error) {
 				return nil, errors.New("invalid request body")
 			},
@@ -102,6 +95,20 @@ func TestValidateRequestBody(t *testing.T) {
 			mockedBody:     gin.H{"error": "Unhandled exception for input validation"},
 			mockedReturns:  nil,
 			mockedError:    errors.New("unhandled exception"),
+			handlerCalled:  false,
+		},
+		{
+			name:    "Failed to decode request body",
+			payload: []byte(`{invalid`),
+			checkFunc: func() ([]map[string]string, error) {
+				return nil, errors.New("invalid request body")
+			},
+			expectedStatus: 400,
+			expectedBody:   "{\"error\":\"invalid request body\"}",
+			mockedStatus:   400,
+			mockedBody:     gin.H{"error": "invalid request body"},
+			mockedReturns:  nil,
+			mockedError:    errors.New("invalid request body"),
 			handlerCalled:  false,
 		},
 	}
@@ -126,9 +133,8 @@ func TestValidateRequestBody(t *testing.T) {
 				handlerCalled = true
 				c.JSON(tt.mockedStatus, tt.mockedBody)
 			})
-			body, err := json.Marshal(&tt.payload)
-			assert.NoError(t, err)
-			req := httptest.NewRequest(http.MethodPost, "/test", bytes.NewBuffer(body))
+
+			req := httptest.NewRequest(http.MethodPost, "/test", bytes.NewBuffer(tt.payload))
 			req.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 
