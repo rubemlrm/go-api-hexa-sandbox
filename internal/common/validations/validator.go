@@ -108,7 +108,7 @@ func (v Validator) ValidateInput(val interface{}) ([]map[string]string, error) {
 		if hasErrors {
 			return v.ConvertToMap(err.(vl.ValidationErrors)), nil
 		}
-		return nil, errors.New(fmt.Sprintf("failed to validate: %s", err))
+		return nil, fmt.Errorf("failed to validate: %s", err)
 	}
 	return nil, nil
 }

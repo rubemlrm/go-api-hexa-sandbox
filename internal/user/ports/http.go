@@ -19,6 +19,7 @@ import (
 )
 
 var tracer = otel.Tracer("gin-server")
+var requestIDKey = "requestID"
 
 type HTTPServer struct {
 	app    app.UserModule
@@ -37,10 +38,10 @@ func (s HTTPServer) AddUser(c *gin.Context) {
 	_, span := tracer.Start(c.Request.Context(), "AddUser")
 	defer span.End()
 
-	reqID := c.GetString("requestID")
+	reqID := c.GetString(requestIDKey)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	ctx = context.WithValue(ctx, "requestID", reqID)
+	ctx = context.WithValue(ctx, requestIDKey, reqID)
 	defer cancel()
 
 	id, err := s.app.Commands.CreateUser.Handle(c, req)
