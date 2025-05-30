@@ -5,17 +5,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
+	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSetHandlers(t *testing.T) {
-	engine := gin.NewEngine()
+	engine := gin_handler.NewEngine()
 	l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
 
-	engine.SetHandlers(l.Logger, func() {})
+	engine.SetHandlers(l.Logger, func() {}, "test")
 
 	// Test /swagger-ui route
 	req, _ := http.NewRequest("GET", "/swagger-ui", nil)
@@ -28,4 +28,10 @@ func TestSetHandlers(t *testing.T) {
 	w = httptest.NewRecorder()
 	engine.Engine.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func TestEngine_StartHTTP(t *testing.T) {
+	en := gin_handler.NewEngine()
+	h := en.StartHTTP()
+	assert.NotNil(t, h)
 }

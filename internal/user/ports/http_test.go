@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"testing"
 
+	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
 	command_mocks "github.com/rubemlrm/go-api-bootstrap/internal/user/app/command/mocks"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
@@ -23,6 +25,25 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+var _ ports.ServerInterface = (*MockServerInterface)(nil)
+
+type MockServerInterface struct {
+}
+
+func (m *MockServerInterface) ListUsers(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "ListUsers called"})
+}
+
+func (m *MockServerInterface) AddUser(c *gin.Context) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *MockServerInterface) GetUser(c *gin.Context, userId int) {
+	//TODO implement me
+	panic("implement me")
+}
 
 func TestGetUser(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -67,12 +88,12 @@ func TestGetUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			mockHandler := query_mocks.NewMockGetUserHandler(t)
-			app := app.UserModule{
+			application := app.UserModule{
 				Queries: app.Queries{
 					GetUser: mockHandler,
 				},
 			}
-			s := ports.NewHTTPServer(app, logger)
+			s := ports.NewHTTPServer(application, logger)
 			mockHandler.On("Handle", mock.Anything, query.UserSearch{
 				ID: user.ID(tt.userID),
 			}).Return(tt.mockUser, tt.mockError)
@@ -139,12 +160,12 @@ func TestListUsers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			mockHandler := query_mocks.NewMockListUsersHandler(t)
-			app := app.UserModule{
+			application := app.UserModule{
 				Queries: app.Queries{
 					GetUsers: mockHandler,
 				},
 			}
-			s := ports.NewHTTPServer(app, logger)
+			s := ports.NewHTTPServer(application, logger)
 			mockHandler.On("Handle", mock.Anything, query.UserSearchFilters{}).Return(tt.mockResultUsers, tt.mockError)
 			router := gin.Default()
 			router.GET("/api/v1/users/", func(c *gin.Context) {
@@ -186,18 +207,18 @@ func TestAddUser(t *testing.T) {
 		},
 		{
 			name:             "failed to create user",
-			expectedStatus:   http.StatusInternalServerError,
-			expectedRequest:  uf.CreateUserCreate(),
-			expectedResponse: `{"error":"internal error"}`,
-			mockError:        errors.New("internal error"),
+			expectedStatus:   http.StatusUnprocessableEntity,
+			expectedRequest:  uf.CreateInvalidUserCreate(),
+			expectedResponse: `{"errors":[{"error":"Key: 'UserCreate.email' Error:Field validation for 'email' failed on the 'email' tag","field":"email"}],"message":"Validation failed"}`,
+			mockError:        errors.New(`"{"errors":[{"error":"Key: 'UserCreate.email' Error:Field validation for 'email' failed on the 'email' tag","field":"email"}],"message":"Validation failed"}"`),
 			mockUserID:       0,
 		},
 		{
-			name:             "failed to bind json",
-			expectedStatus:   http.StatusBadRequest,
-			expectedRequest:  uf.CreateInvalidUserCreate(),
-			expectedResponse: `{"error":"failed to bind"}`,
-			mockError:        nil,
+			name:             "failed to create user",
+			expectedStatus:   http.StatusInternalServerError,
+			expectedRequest:  uf.CreateUserCreate(),
+			expectedResponse: `{"errors":"Internal error"}`,
+			mockError:        errors.New(`Internal error`),
 			mockUserID:       0,
 		},
 	}
@@ -206,15 +227,22 @@ func TestAddUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 			mockHandler := command_mocks.NewMockCreateUserHandler(t)
-			app := app.UserModule{
+			application := app.UserModule{
 				Commands: app.Commands{
 					CreateUser: mockHandler,
 				},
 			}
-			s := ports.NewHTTPServer(app, logger)
+			s := ports.NewHTTPServer(application, logger)
 			mockHandler.On("Handle", mock.Anything, mock.Anything).Return(user.ID(tt.mockUserID), tt.mockError).Maybe()
 			router := gin.Default()
-			router.POST("/api/v1/users/", s.AddUser)
+			router.Use(func(c *gin.Context) {
+				requestID := "test-request-id"
+				c.Set("requestID", requestID)
+				c.Next()
+			})
+			router.POST("/api/v1/users/", gin_handler.ValidateRequestBody[*user.UserCreate](func() *user.UserCreate {
+				return &user.UserCreate{}
+			}, logger, "userCreate"), s.AddUser)
 
 			var requestBody []byte
 			var err error
@@ -234,4 +262,39 @@ func TestAddUser(t *testing.T) {
 			mockHandler.AssertExpectations(t)
 		})
 	}
+}
+
+func TestRegisterHandlersWithOptionsAndValidations(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	mockSI := &MockServerInterface{}
+	options := ports.GinServerOptions{BaseURL: "/api/v1"}
+	logger := slog.Default()
+
+	ports.RegisterHandlersWithOptionsAndValidations(router, mockSI, options, logger)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/users", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	// Add more assertions as needed
+}
+
+func TestRegisterHandlersWithOptionsAndValidationsWithoutErrorHandler(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	mockSI := &MockServerInterface{}
+	var options ports.GinServerOptions
+
+	logger := slog.Default()
+
+	ports.RegisterHandlersWithOptionsAndValidations(router, mockSI, options, logger)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/users", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+	// Add more assertions as needed
 }

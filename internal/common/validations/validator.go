@@ -11,14 +11,20 @@ import (
 	vl "github.com/go-playground/validator/v10"
 )
 
-type Validater interface {
-	Check(val interface{}) bool
-	CheckWithTranslations(val interface{}) error
+type Validater[T any] interface {
+	Check(vf ValidationFunc) ([]map[string]string, error)
+}
+
+type StructValidator interface {
+	Struct(val interface{}) error
+	RegisterTagNameFunc(fn vl.TagNameFunc)
+	RegisterTranslation(tag string, trans ut.Translator, registerFn vl.RegisterTranslationsFunc, translationFn vl.TranslationFunc) error
+	RegisterValidation(tag string, fn vl.Func, callValidationEvenIfNull ...bool) error
 }
 
 type Validator struct {
-	validate     *vl.Validate
-	translations ut.Translator
+	Validate     StructValidator
+	Translations ut.Translator
 }
 
 type ValidationFunc func(string, ...Option) (*Validator, error)
@@ -52,7 +58,7 @@ func WithCustomFieldLabel(label string) Option {
 		if label == "" {
 			return fmt.Errorf("custom field label is required")
 		}
-		v.validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		v.Validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 			name := strings.SplitN(fld.Tag.Get(label), ",", 1)[0]
 			if name == "-" {
 				return ""
@@ -71,7 +77,7 @@ func WithCustomTranslation(tag string, message string) Option {
 		if message == "" {
 			return fmt.Errorf("message can't be empty")
 		}
-		err := v.validate.RegisterTranslation(tag, v.translations, func(ut ut.Translator) error {
+		err := v.Validate.RegisterTranslation(tag, v.Translations, func(ut ut.Translator) error {
 			return ut.Add(tag, message, true)
 		}, func(ut ut.Translator, fe vl.FieldError) string {
 			t, _ := ut.T(tag, fe.Field())
@@ -90,24 +96,30 @@ func WithCustomValidationRule(tag string, fn vl.Func) Option {
 		if fn == nil {
 			return fmt.Errorf("function can't be nil")
 		}
-		return v.validate.RegisterValidation(tag, fn)
+		return v.Validate.RegisterValidation(tag, fn)
 	}
 }
 
-func (v *Validator) Check(val interface{}) error {
-	err := v.validate.Struct(val)
+func (v Validator) ValidateInput(val interface{}) ([]map[string]string, error) {
+	err := v.Validate.Struct(val)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to validate: %s", err))
+		var validationErrors vl.ValidationErrors
+		hasErrors := errors.As(err, &validationErrors)
+		if hasErrors {
+			return v.ConvertToMap(err.(vl.ValidationErrors)), nil
+		}
+		return nil, fmt.Errorf("failed to validate: %s", err)
 	}
-	return nil
+	return nil, nil
 }
 
-func (v *Validator) CheckWithTranslations(val interface{}) error {
-	err := v.validate.Struct(val)
-	if err != nil {
-		var trs vl.ValidationErrors
-		errors.As(err, &trs)
-		return errors.New(fmt.Sprintf("failed to validate: %s", trs.Translate(v.translations)))
+func (v Validator) ConvertToMap(errs vl.ValidationErrors) []map[string]string {
+	result := make([]map[string]string, 0, len(errs))
+	for _, e := range errs {
+		result = append(result, map[string]string{
+			"field": e.Field(),
+			"error": e.Translate(v.Translations),
+		})
 	}
-	return nil
+	return result
 }

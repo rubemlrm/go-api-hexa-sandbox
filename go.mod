@@ -4,6 +4,7 @@ go 1.24.1
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
+	github.com/getkin/kin-openapi v0.131.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-faker/faker/v4 v4.6.1
 	github.com/go-openapi/runtime v0.28.0
@@ -27,7 +28,6 @@ require (
 	go.opentelemetry.io/otel/metric v1.35.0
 	go.opentelemetry.io/otel/sdk v1.35.0
 	go.opentelemetry.io/otel/sdk/metric v1.35.0
-	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
 )
 
 require (
@@ -55,7 +55,6 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
-	github.com/getkin/kin-openapi v0.131.0 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

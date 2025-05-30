@@ -89,10 +89,10 @@ jobs:
 
       - name: install tools
         run: make install-dependencies
-      - name: generate mocks
-        run: mockery
       - name: generate openapi
         run: make generate-openapi
+      - name: generate mocks
+        run: mockery
       - name: get dependencies
         run: go mod tidy && go mod vendor
       - name: golangci-lint
