@@ -240,7 +240,9 @@ func TestAddUser(t *testing.T) {
 				c.Set("requestID", requestID)
 				c.Next()
 			})
-			router.POST("/api/v1/users/", gin_handler.ValidateRequestBody[*user.UserCreate](logger, "userCreate"), s.AddUser)
+			router.POST("/api/v1/users/", gin_handler.ValidateRequestBody[*user.UserCreate](func() *user.UserCreate {
+				return &user.UserCreate{}
+			}, logger, "userCreate"), s.AddUser)
 
 			var requestBody []byte
 			var err error

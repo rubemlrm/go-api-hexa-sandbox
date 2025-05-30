@@ -102,6 +102,8 @@ func RegisterHandlersWithOptionsAndValidations(router gin.IRouter, si ServerInte
 	}
 
 	router.GET(options.BaseURL+"/users", wrapper.ListUsers)
-	router.POST(options.BaseURL+"/users", gin_handler.ValidateRequestBody[*user.UserCreate](logger, "userCreate"), wrapper.AddUser)
+	router.POST(options.BaseURL+"/users", gin_handler.ValidateRequestBody[*user.UserCreate](func() *user.UserCreate {
+		return &user.UserCreate{}
+	}, logger, "userCreate"), wrapper.AddUser)
 	router.GET(options.BaseURL+"/users/:userId", wrapper.GetUser)
 }

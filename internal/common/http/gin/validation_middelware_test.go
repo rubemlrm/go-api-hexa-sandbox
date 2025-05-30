@@ -15,23 +15,25 @@ import (
 	"github.com/gin-gonic/gin"
 	gin_handler "github.com/rubemlrm/go-api-bootstrap/internal/common/http/gin"
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/validations"
-	"github.com/stretchr/testify/mock"
 )
 
-var _ gin.HandlerFunc = gin_handler.ValidateRequestBody[*MockTestPayload](nil, "")
-
 type MockTestPayload struct {
-	mock.Mock
-	Name string `json:"name" validate:"required"`
+	Name      string                              `json:"name" validate:"required"`
+	CheckFunc func() ([]map[string]string, error) `json:"-"`
 }
 
-func (t *MockTestPayload) Check(vf validations.ValidationFunc) ([]map[string]string, error) {
-	return make([]map[string]string, 0), nil
+func (m *MockTestPayload) Check(vf validations.ValidationFunc) ([]map[string]string, error) {
+	if m.CheckFunc != nil {
+		return m.CheckFunc()
+	}
+	return nil, nil
 }
 
 func TestValidateRequestBody(t *testing.T) {
+
 	var tests = []struct {
 		name           string
+		factory        func() error
 		payload        MockTestPayload
 		expectedStatus int
 		expectedBody   string
@@ -39,20 +41,31 @@ func TestValidateRequestBody(t *testing.T) {
 		mockedError    error
 		mockedReturns  []map[string]string
 		mockedStatus   int
+		handlerCalled  bool
+		checkFunc      func() ([]map[string]string, error)
 	}{
 		{
-			name:           "Valid payload",
-			payload:        MockTestPayload{Name: "test"},
+			name:    "Valid payload",
+			payload: MockTestPayload{Name: "test"},
+			checkFunc: func() ([]map[string]string, error) {
+				return nil, nil
+			},
 			expectedStatus: 200,
 			mockedStatus:   200,
 			expectedBody:   "{\"message\":\"ok\"}",
 			mockedBody:     gin.H{"message": "ok"},
 			mockedReturns:  nil,
 			mockedError:    nil,
+			handlerCalled:  true,
 		},
 		{
-			name:           "Invalid payload",
-			payload:        MockTestPayload{Name: ""},
+			name:    "Invalid payload",
+			payload: MockTestPayload{Name: ""},
+			checkFunc: func() ([]map[string]string, error) {
+				return []map[string]string{
+					{"field": "name", "error": "name must have a value!"},
+				}, nil
+			},
 			expectedStatus: 422,
 			mockedStatus:   422,
 			expectedBody:   "{\"errors\":[{\"error\":\"name must have a value!\",\"field\":\"name\"}],\"message\":\"Validation failed\"}",
@@ -69,23 +82,29 @@ func TestValidateRequestBody(t *testing.T) {
 			mockedReturns: []map[string]string{
 				{"field": "name", "error": "name must have a value!"},
 			},
-			mockedError: nil,
+			mockedError:   nil,
+			handlerCalled: false,
 		},
 		{
-			name:           "Internal server error",
-			payload:        MockTestPayload{Name: ""},
+			name:    "Failed to decode request body",
+			payload: MockTestPayload{},
+			checkFunc: func() ([]map[string]string, error) {
+				return nil, errors.New("invalid request body")
+			},
 			expectedStatus: 500,
 			expectedBody:   "{\"error\":\"Unhandled exception for input validation\"}",
 			mockedStatus:   500,
 			mockedBody:     gin.H{"error": "Unhandled exception for input validation"},
 			mockedReturns:  nil,
 			mockedError:    errors.New("unhandled exception"),
+			handlerCalled:  false,
 		},
 	}
 
-	for i := range tests {
-		tt := &tests[i]
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			gin.SetMode(gin.TestMode)
 			router := gin.Default()
 			router.Use(func(c *gin.Context) {
 				requestID := "test-request-id"
@@ -93,12 +112,16 @@ func TestValidateRequestBody(t *testing.T) {
 				c.Next()
 			})
 			mockLogger := slog.New(slog.NewTextHandler(io.Discard, nil))
-			mockTestPayload := new(MockTestPayload)
-			mockTestPayload.On("Check", mock.Anything).Return(tt.mockedReturns, tt.mockedError)
-			router.POST("/test", gin_handler.ValidateRequestBody[*MockTestPayload](mockLogger, "testKey"), func(c *gin.Context) {
+			handlerCalled := false
+			router.POST("/test", gin_handler.ValidateRequestBody[*MockTestPayload](func() *MockTestPayload {
+				return &MockTestPayload{
+					CheckFunc: tt.checkFunc,
+				}
+			},
+				mockLogger, "testKey"), func(c *gin.Context) {
+				handlerCalled = true
 				c.JSON(tt.mockedStatus, tt.mockedBody)
 			})
-
 			body, err := json.Marshal(&tt.payload)
 			assert.NoError(t, err)
 			req := httptest.NewRequest(http.MethodPost, "/test", bytes.NewBuffer(body))
@@ -106,10 +129,11 @@ func TestValidateRequestBody(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			router.ServeHTTP(w, req)
-
 			// Assertions
 			assert.Equal(t, tt.expectedStatus, w.Code)
 			assert.Equal(t, tt.expectedBody, w.Body.String())
+			assert.Equal(t, tt.handlerCalled, handlerCalled)
+			//mockerdPayload.AssertExpectations(t)
 		})
 	}
 }
