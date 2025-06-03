@@ -8,10 +8,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/lib/pq"
-
 	"github.com/XSAM/otelsql"
-	_ "github.com/lib/pq"
+	pq "github.com/lib/pq"
 )
 
 type PostgresWrapper struct {
