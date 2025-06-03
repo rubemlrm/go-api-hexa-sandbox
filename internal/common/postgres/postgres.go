@@ -3,7 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/lib/pq"
 	"log/slog"
 	"time"
 
@@ -47,8 +49,11 @@ func NewConnection(logger *slog.Logger, options ...PostgresOption) (*sql.DB, err
 		return nil, err
 	}
 
-	dbURI := d.generateConnectionString()
-
+	dbURI, err := d.generateConnectionString()
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, err
+	}
 	db, err := sql.Open(driverName, dbURI)
 	if err != nil {
 		logger.Error(err.Error())
@@ -57,6 +62,18 @@ func NewConnection(logger *slog.Logger, options ...PostgresOption) (*sql.DB, err
 
 	// Check if connection is valid
 	if err := db.Ping(); err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			if pqErr.Code == "28P01" {
+				// handle authentication error
+				logger.Error("Authentication failed", "error", pqErr.Message)
+				return nil, fmt.Errorf("failed to connect to database: invalid credentials")
+			} else if pqErr.Code == "3D000" {
+				logger.Error("Database not found", "error", pqErr.Message)
+				return nil, fmt.Errorf("database not found: %w", pqErr)
+			}
+			fmt.Println("Postgres error code:", pqErr.Code)
+		}
 		logger.Error("Failed to connect to database", "error", err.Error())
 		return nil, err
 	}
@@ -127,9 +144,9 @@ func WithTracerName(v string) PostgresOption {
 	}
 }
 
-func (d *PostgresWrapper) generateConnectionString() string {
+func (d *PostgresWrapper) generateConnectionString() (string, error) {
 	if d.username != "" && d.password != "" {
-		return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", d.username, d.password, d.host, d.port, d.schema, d.sslmode)
+		return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", d.username, d.password, d.host, d.port, d.schema, d.sslmode), nil
 	}
-	return fmt.Sprintf("postgres://%s:%s/%s?sslmode=%s", d.host, d.port, d.schema, d.sslmode)
+	return "", fmt.Errorf("username and password must be provided")
 }

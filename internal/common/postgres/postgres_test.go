@@ -3,6 +3,7 @@ package postgres_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 	"time"
 
@@ -14,42 +15,62 @@ import (
 
 func TestNewConnectionWithAuth(t *testing.T) {
 	type accessData struct {
-		username string
-		password string
-		schema   string
-		port     string
-		sslmode  string
-		host     string
+		username   string
+		password   string
+		schema     string
+		port       string
+		sslmode    string
+		host       string
+		tracerName string
 	}
 	var tests = []struct {
-		name         string
-		requiresAuth bool
-		expectsError bool
-		accessData   accessData
+		name          string
+		requiresAuth  bool
+		expectsError  bool
+		expectedError error
+		accessData    accessData
 	}{
 		{
-			name:         "Start new connection with auth and success",
-			requiresAuth: true,
-			expectsError: false,
+			name:          "Start new connection with auth and success",
+			requiresAuth:  true,
+			expectsError:  false,
+			expectedError: nil,
 			accessData: accessData{
-				username: "user",
-				password: "password",
-				schema:   "postgres",
-				port:     "5432",
-				sslmode:  "disable",
-				host:     "localhost",
+				username:   "user",
+				password:   "password",
+				schema:     "postgres",
+				port:       "5432",
+				sslmode:    "disable",
+				host:       "localhost",
+				tracerName: "test-tracer",
 			},
 		},
 		{
-			name:         "Start new connection with auth and fail",
-			requiresAuth: true,
-			expectsError: true,
+			name:          "Start new connection with auth and fail",
+			requiresAuth:  true,
+			expectsError:  true,
+			expectedError: fmt.Errorf("failed to connect to database: invalid credentials"),
 			accessData: accessData{
-				username: "user",
-				password: "password22",
-				schema:   "postgres",
-				port:     "5432",
-				sslmode:  "disable",
+				username:   "user",
+				password:   "password22",
+				schema:     "postgres",
+				port:       "5432",
+				sslmode:    "disable",
+				tracerName: "test-tracer",
+			},
+		},
+		{
+			name:          "Start new connection without auth and fail",
+			requiresAuth:  true,
+			expectsError:  true,
+			expectedError: fmt.Errorf("username and password must be provided"),
+			accessData: accessData{
+				username:   "",
+				password:   "",
+				schema:     "postgres",
+				port:       "5432",
+				sslmode:    "disable",
+				tracerName: "test-tracer",
 			},
 		},
 	}
@@ -74,11 +95,13 @@ func TestNewConnectionWithAuth(t *testing.T) {
 				postgres.WithMaxOpenConns(20),
 				postgres.WithMaxIddleTime(10),
 				postgres.WithMaxIddleCons(5),
+				postgres.WithTracerName(tt.accessData.tracerName),
 			)
 
 			if tt.expectsError {
 				assert.Nil(t, db)
 				assert.NotNil(t, err)
+				assert.Equal(t, tt.expectedError, err)
 			} else {
 				assert.Nil(t, err)
 				assert.NotNil(t, db)
@@ -86,7 +109,10 @@ func TestNewConnectionWithAuth(t *testing.T) {
 
 			ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer ctxCancel()
-			container.Terminate(ctx)
+			err = container.Terminate(ctx)
+			if err != nil {
+				return
+			}
 		})
 	}
 }
