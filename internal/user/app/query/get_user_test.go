@@ -3,6 +3,8 @@ package query_test
 import (
 	"context"
 	"errors"
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/decorator/mocks"
+	"github.com/stretchr/testify/mock"
 	"testing"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
@@ -66,6 +68,7 @@ func TestGetUserHandler_Handle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
+			mockTracer := mocks.NewMockRecordTracer(t)
 			if tt.expectUser {
 				mockDB.ExpectQuery("SELECT id, name, password, is_enabled FROM users where id = $1").
 					WithArgs(tt.searchInput.ID).
@@ -76,8 +79,9 @@ func TestGetUserHandler_Handle(t *testing.T) {
 					WillReturnError(errors.New("repository error"))
 			}
 
-			cmd := query.NewGetUserHandler(mockRepo, l.Logger)
+			cmd := query.NewGetUserHandler(mockRepo, l.Logger, mockTracer)
 			mockRepo.On("Get", context.Background(), tt.searchInput.ID).Return(tt.searchedUser, tt.mockError)
+			mockTracer.On("RecordTrace", context.Background(), mock.Anything, mock.Anything).Return(nil)
 
 			id, err := cmd.Handle(context.Background(), tt.searchInput)
 			assert.Equal(t, tt.searchedUser, id)

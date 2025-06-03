@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/tracing"
 	"log/slog"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
@@ -17,13 +18,14 @@ func NewApplication(ctx context.Context, l *slog.Logger, db *sql.DB) app.UserMod
 
 func newApplication(_ context.Context, l *slog.Logger, db *sql.DB) app.UserModule {
 	repo := adapters.NewUserRepository(db, l)
+	tracer := &tracing.TracerProvider{}
 	return app.UserModule{
 		Commands: app.Commands{
-			CreateUser: command.NewCreateUserHandler(repo, l),
+			CreateUser: command.NewCreateUserHandler(repo, l, tracer),
 		},
 		Queries: app.Queries{
-			GetUser:  query.NewGetUserHandler(repo, l),
-			GetUsers: query.NewListUsersHandler(repo, l),
+			GetUser:  query.NewGetUserHandler(repo, l, tracer),
+			GetUsers: query.NewListUsersHandler(repo, l, tracer),
 		},
 	}
 }

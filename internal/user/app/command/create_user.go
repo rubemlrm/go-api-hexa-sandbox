@@ -14,11 +14,11 @@ type UserCreateStore struct {
 	userRepository user.UserRepository
 }
 
-func NewCreateUserHandler(repository user.UserRepository, l *slog.Logger) CreateUserHandler {
+func NewCreateUserHandler(repository user.UserRepository, l *slog.Logger, tracer decorator.RecordTracer) CreateUserHandler {
 	return decorator.ApplyCommandDecorators[*user.UserCreate, user.ID](
 		UserCreateStore{
 			userRepository: repository,
-		}, l)
+		}, l, tracer)
 }
 
 func (m UserCreateStore) Handle(ctx context.Context, cmd *user.UserCreate) (user.ID, error) {

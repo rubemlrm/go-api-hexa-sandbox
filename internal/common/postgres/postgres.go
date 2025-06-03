@@ -1,11 +1,13 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
 	"time"
 
+	"github.com/XSAM/otelsql"
 	_ "github.com/lib/pq"
 )
 
@@ -20,6 +22,7 @@ type PostgresWrapper struct {
 	maxOpenConns int
 	maxIddleCons int
 	maxIddleTime time.Duration
+	tracerName   string
 }
 
 type PostgresOption func(*PostgresWrapper)
@@ -35,9 +38,18 @@ func NewConnection(logger *slog.Logger, options ...PostgresOption) (*sql.DB, err
 	for _, option := range options {
 		option(d)
 	}
+
+	driverName, err := otelsql.Register("postgres",
+		otelsql.WithSpanNameFormatter(func(ctx context.Context, _ otelsql.Method, _ string) string {
+			return d.tracerName
+		}))
+	if err != nil {
+		return nil, err
+	}
+
 	dbURI := d.generateConnectionString()
 
-	db, err := sql.Open("postgres", dbURI)
+	db, err := sql.Open(driverName, dbURI)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -106,6 +118,12 @@ func WithMaxIddleCons(v int) PostgresOption {
 func WithMaxIddleTime(v time.Duration) PostgresOption {
 	return func(pw *PostgresWrapper) {
 		pw.maxIddleTime = v
+	}
+}
+
+func WithTracerName(v string) PostgresOption {
+	return func(pw *PostgresWrapper) {
+		pw.tracerName = v
 	}
 }
 

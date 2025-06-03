@@ -3,6 +3,7 @@ package tracing
 import (
 	"context"
 	"fmt"
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/decorator"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 
@@ -14,6 +15,17 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 )
+
+var _ decorator.RecordTracer = (*TracerProvider)(nil)
+
+type TracerProvider struct {
+}
+
+func (t *TracerProvider) RecordTrace(ctx context.Context, actionName string, tracerName string) {
+	var tracer = otel.Tracer(tracerName)
+	ctx, span := tracer.Start(ctx, actionName)
+	defer span.End()
+}
 
 func InitTracer(tracing config.Tracing) (*sdktrace.TracerProvider, error) {
 	host := fmt.Sprintf("%s:%s", tracing.AgentHost, tracing.AgentPort)

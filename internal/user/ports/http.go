@@ -13,13 +13,8 @@ import (
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app/query"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/domain/user"
 
-	"go.opentelemetry.io/otel"
-
 	"github.com/gin-gonic/gin"
 )
-
-var tracer = otel.Tracer("gin-server")
-var requestIDKey = "requestID"
 
 type HTTPServer struct {
 	app    app.UserModule
@@ -35,15 +30,9 @@ func NewHTTPServer(application app.UserModule, l *slog.Logger) ServerInterface {
 
 func (s HTTPServer) AddUser(c *gin.Context) {
 	req := c.MustGet("userCreate").(*user.UserCreate)
-	_, span := tracer.Start(c.Request.Context(), "AddUser")
-	defer span.End()
-
-	reqID := c.GetString(requestIDKey)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	ctx = context.WithValue(ctx, requestIDKey, reqID)
+	ctx := c.Request.Context()
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
-
 	id, err := s.app.Commands.CreateUser.Handle(c, req)
 	if err != nil {
 		s.Logger.Error("user", "creation", "error", slog.Any("error", err))
@@ -55,9 +44,8 @@ func (s HTTPServer) AddUser(c *gin.Context) {
 }
 
 func (s HTTPServer) ListUsers(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	reqID := c.GetString("requestID")
-	ctx = context.WithValue(ctx, "requestID", reqID)
+	ctx := c.Request.Context()
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	res, err := s.app.Queries.GetUsers.Handle(ctx, query.UserSearchFilters{})
 	if err != nil {
@@ -69,9 +57,8 @@ func (s HTTPServer) ListUsers(c *gin.Context) {
 }
 
 func (s HTTPServer) GetUser(c *gin.Context, userID int) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	reqID := c.GetString("requestID")
-	ctx = context.WithValue(ctx, "requestID", reqID)
+	ctx := c.Request.Context()
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	res, err := s.app.Queries.GetUser.Handle(ctx, query.UserSearch{ID: user.ID(userID)})
 	if err != nil {

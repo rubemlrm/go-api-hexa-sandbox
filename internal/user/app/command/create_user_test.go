@@ -3,6 +3,8 @@ package command_test
 import (
 	"context"
 	"errors"
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/decorator/mocks"
+	"github.com/stretchr/testify/mock"
 	"testing"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
@@ -64,6 +66,7 @@ func TestCreateUserHandler_Handle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			l := logger.NewLogger(logger.WithLogFormat("json"), logger.WithLogLevel("Debug"))
+			mockTracer := mocks.NewMockRecordTracer(t)
 			if tt.expectUser {
 				mockDB.ExpectQuery("INSERT into users (name, email, password) values($1,$2,$3) RETURNING id").
 					WithArgs(tt.input.Name, tt.input.Email, tt.input.Password).
@@ -74,9 +77,9 @@ func TestCreateUserHandler_Handle(t *testing.T) {
 					WillReturnError(errors.New("repository error"))
 			}
 
-			cmd := command.NewCreateUserHandler(mockRepo, l.Logger)
+			cmd := command.NewCreateUserHandler(mockRepo, l.Logger, mockTracer)
 			mockRepo.On("Create", context.Background(), tt.input).Return(tt.mockUserID, tt.mockError)
-
+			mockTracer.On("RecordTrace", context.Background(), mock.Anything, mock.Anything).Return(nil)
 			id, err := cmd.Handle(context.Background(), tt.input)
 			assert.Equal(t, tt.expectedID, id)
 			assert.Equal(t, tt.expectedError, err)
