@@ -15,10 +15,10 @@ type ListUsers struct {
 	userRepository user.UserRepository
 }
 
-func NewListUsersHandler(repository user.UserRepository, l *slog.Logger) ListUsersHandler {
+func NewListUsersHandler(repository user.UserRepository, l *slog.Logger, tracer decorator.RecordTracer) ListUsersHandler {
 	return decorator.ApplyQueryDecorators[UserSearchFilters, *[]user.User](
 		ListUsers{userRepository: repository},
-		l,
+		l, tracer,
 	)
 }
 

@@ -46,7 +46,8 @@ func main() {
 		postgres.WithHost(cfg.Database.Host),
 		postgres.WithPort(cfg.Database.Port),
 		postgres.WithSchema(cfg.Database.Schema),
-		postgres.WithSSLMode(cfg.Database.SSLMode))
+		postgres.WithSSLMode(cfg.Database.SSLMode),
+		postgres.WithTracerName(cfg.Tracing.ServiceName))
 	if err != nil {
 		panic(err)
 	}
