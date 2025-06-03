@@ -3,6 +3,7 @@ package tracing
 import (
 	"context"
 	"fmt"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/decorator"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"

@@ -3,9 +3,10 @@ package command_test
 import (
 	"context"
 	"errors"
+	"testing"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/decorator/mocks"
 	"github.com/stretchr/testify/mock"
-	"testing"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/logger"
 

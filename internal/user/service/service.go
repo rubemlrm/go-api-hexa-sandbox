@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"database/sql"
-	"github.com/rubemlrm/go-api-bootstrap/internal/common/tracing"
 	"log/slog"
+
+	"github.com/rubemlrm/go-api-bootstrap/internal/common/tracing"
 
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/adapters"
 	"github.com/rubemlrm/go-api-bootstrap/internal/user/app"
