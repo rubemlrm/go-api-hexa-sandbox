@@ -69,7 +69,7 @@ func NewConnection(logger *slog.Logger, options ...PostgresOption) (*sql.DB, err
 				return nil, fmt.Errorf("failed to connect to database: invalid credentials")
 			} else if pqErr.Code == "3D000" {
 				logger.Error("Database not found", "error", pqErr.Message)
-				return nil, fmt.Errorf("database not found: %w", pqErr)
+				return nil, fmt.Errorf("database not found")
 			}
 			fmt.Println("Postgres error code:", pqErr.Code)
 		}

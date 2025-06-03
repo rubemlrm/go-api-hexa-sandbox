@@ -73,6 +73,20 @@ func TestNewConnectionWithAuth(t *testing.T) {
 				tracerName: "test-tracer",
 			},
 		},
+		{
+			name:          "Start new connection and fail because of wrong database name",
+			requiresAuth:  true,
+			expectsError:  true,
+			expectedError: fmt.Errorf("database not found"),
+			accessData: accessData{
+				username:   "user",
+				password:   "password",
+				schema:     "postgres2",
+				port:       "5432",
+				sslmode:    "disable",
+				tracerName: "test-tracer",
+			},
+		},
 	}
 
 	for _, tt := range tests {
