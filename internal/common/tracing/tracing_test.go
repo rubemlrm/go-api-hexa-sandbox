@@ -2,9 +2,10 @@ package tracing
 
 import (
 	"context"
+	"testing"
+
 	"github.com/rubemlrm/go-api-bootstrap/internal/common/config"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestInitializesTracerProviderSuccessfully(t *testing.T) {
