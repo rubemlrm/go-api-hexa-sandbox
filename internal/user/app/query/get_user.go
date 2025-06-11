@@ -18,10 +18,11 @@ type GetUser struct {
 	userRepository user.UserRepository
 }
 
-func NewGetUserHandler(repository user.UserRepository, l *slog.Logger) GetUserHandler {
+func NewGetUserHandler(repository user.UserRepository, l *slog.Logger, tracer decorator.RecordTracer) GetUserHandler {
 	return decorator.ApplyQueryDecorators[UserSearch, *user.User](
 		GetUser{userRepository: repository},
 		l,
+		tracer,
 	)
 }
 

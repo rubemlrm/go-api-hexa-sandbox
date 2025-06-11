@@ -5,9 +5,12 @@ import (
 	"log/slog"
 )
 
-func ApplyCommandDecorators[Q any, R any](handler QueryHandler[Q, R], logger *slog.Logger) QueryHandler[Q, R] {
+func ApplyCommandDecorators[Q any, R any](handler QueryHandler[Q, R], logger *slog.Logger, tracer RecordTracer) QueryHandler[Q, R] {
 	return DatabaseLoggingCommandDecorator[Q, R]{
-		base:   handler,
+		base: DatabaseTracingCommandDecorator[Q, R]{
+			base:   handler,
+			tracer: tracer,
+		},
 		logger: logger,
 	}
 }
